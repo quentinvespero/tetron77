@@ -1,9 +1,7 @@
 import RAPIER from '@dimforge/rapier3d-compat'
-import * as THREE from 'three'
 import { GameLoop } from '@core/GameLoop'
 import { SceneManager } from '@rendering/SceneManager'
 import { CameraRig } from '@rendering/CameraRig'
-import { PALETTE } from '@rendering/materials'
 import { PhysicsWorld } from '@physics/PhysicsWorld'
 import { InputManager } from '@player/InputManager'
 import { PlayerEntity } from '@player/PlayerEntity'
@@ -34,21 +32,7 @@ async function main(): Promise<void> {
     // 6. Force-load initial chunks before the loop starts so the player lands on terrain
     chunkManager.update(player.startPosition)
 
-    // 7. Lighting — no colored lights to preserve the B&W aesthetic
-    const ambient = new THREE.AmbientLight(PALETTE.ambient, 0.3)
-    sceneManager.scene.add(ambient)
-
-    const sun = new THREE.DirectionalLight(PALETTE.sunlight, 1.2)
-    sun.position.set(50, 100, 30)
-    sun.castShadow = true
-    sun.shadow.mapSize.set(2048, 2048)
-    sun.shadow.camera.near = 0.5
-    sun.shadow.camera.far  = 300
-    sun.shadow.camera.left = sun.shadow.camera.bottom = -100
-    sun.shadow.camera.right = sun.shadow.camera.top   = 100
-    sceneManager.scene.add(sun)
-
-    // 8. Game loop — registration order matters
+    // 7. Game loop — registration order matters
     //    physics → controller (reads physics) → chunks (tracks player pos) → render
     const loop = new GameLoop()
     loop.register(physics)

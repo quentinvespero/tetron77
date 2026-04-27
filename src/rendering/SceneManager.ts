@@ -23,6 +23,29 @@ export class SceneManager {
         this.renderer.toneMapping = THREE.LinearToneMapping
         this.renderer.toneMappingExposure = 1.0
 
+        // Hemisphere light: cold overcast sky fill — no harsh directionality
+        const hemi = new THREE.HemisphereLight(
+            0x8899aa, // sky: cold desaturated blue-gray, not pure white
+            0x111111, // ground bounce: very dark
+            1.2       // needs to be high — base materials are very dark (0x222222)
+        )
+        this.scene.add(hemi)
+
+        // Directional sun: angled from above-left, casts shadows
+        const sun = new THREE.DirectionalLight(PALETTE.sunlight, 2.5)
+        sun.position.set(50, 80, 30)
+        sun.castShadow = true
+        sun.shadow.camera.near = 0.5
+        sun.shadow.camera.far = 400
+        sun.shadow.camera.left = -100
+        sun.shadow.camera.right = 100
+        sun.shadow.camera.top = 100
+        sun.shadow.camera.bottom = -100
+        sun.shadow.mapSize.set(2048, 2048)
+        // Slight bias prevents shadow acne on flat terrain surfaces
+        sun.shadow.bias = -0.001
+        this.scene.add(sun)
+
         document.body.appendChild(this.renderer.domElement)
 
         window.addEventListener('resize', this.handleResize)

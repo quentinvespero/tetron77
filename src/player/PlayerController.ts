@@ -12,7 +12,7 @@ const MOUSE_SENSITIVITY = 0.0022
 const MAX_PITCH = Math.PI / 2 - 0.05
 
 const MOVE_SPEED    = 8    // m/s target horizontal speed
-const JUMP_IMPULSE  = 7    // upward impulse on jump
+const JUMP_IMPULSE  = 6    // upward impulse on jump — gives ~2.8m jump height with default capsule mass
 const GROUND_DIST   = 0.15 // max distance from ground to be considered grounded
 // Offset below capsule center to start the ground ray
 const RAY_ORIGIN_OFFSET = -(CAPSULE_HALF_HEIGHT + CAPSULE_RADIUS)
@@ -40,6 +40,7 @@ export class PlayerController {
         this.processMovement()
         this.player.syncToScene()
         this.cameraRig.syncToBody(this.player.position, this.yaw, this.pitch)
+        this.input.flushJustPressed()
     }
 
     private processLook(): void {
@@ -80,8 +81,8 @@ export class PlayerController {
             true
         )
 
-        // Jump
-        if (this.input.isDown('Space') && this._isGrounded) {
+        // Jump — isJustPressed prevents repeated impulses while Space is held
+        if (this.input.isJustPressed('Space') && this._isGrounded) {
             body.applyImpulse({ x: 0, y: JUMP_IMPULSE, z: 0 }, true)
         }
     }

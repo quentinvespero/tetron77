@@ -1,11 +1,14 @@
 export class InputManager {
     keys: Record<string, boolean> = {}
+    private justPressed: Record<string, boolean> = {}
     mouseDeltaX = 0
     mouseDeltaY = 0
     isPointerLocked = false
 
     init(): this {
         document.addEventListener('keydown', (e) => {
+            // Only flag as just-pressed on the leading edge (key was up)
+            if (!this.keys[e.code]) this.justPressed[e.code] = true
             this.keys[e.code] = true
         })
         document.addEventListener('keyup', (e) => {
@@ -42,5 +45,15 @@ export class InputManager {
 
     isDown(code: string): boolean {
         return this.keys[code] === true
+    }
+
+    /** True only on the first frame a key transitions from up to down. */
+    isJustPressed(code: string): boolean {
+        return this.justPressed[code] === true
+    }
+
+    /** Must be called once per frame after all input consumers have run. */
+    flushJustPressed(): void {
+        this.justPressed = {}
     }
 }

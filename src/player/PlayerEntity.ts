@@ -5,7 +5,12 @@ import type { PhysicsWorld } from '@physics/PhysicsWorld'
 // Capsule dimensions — half-height excludes the hemisphere caps
 export const CAPSULE_HALF_HEIGHT = 0.5
 export const CAPSULE_RADIUS      = 0.35
-const SPAWN_HEIGHT        = 4 // Units above y=0 to spawn, ensuring we land on a chunk
+
+// Spawn position — 1 pixel in map.png = 32 world units
+// e.g. to spawn at pixel (col, row): SPAWN_X = col*32, SPAWN_Z = row*32
+const SPAWN_X      = 5 * 32  // pixel (5, 5) on map.png — plains zone
+const SPAWN_Z      = 5 * 32
+const SPAWN_HEIGHT = 2 // drop height above ground — keep above 0.85 (capsule half-height) to avoid starting inside terrain
 
 export class PlayerEntity {
     readonly body: RAPIER.RigidBody
@@ -14,7 +19,7 @@ export class PlayerEntity {
 
     constructor(physics: PhysicsWorld) {
         const bodyDesc = RAPIER.RigidBodyDesc.dynamic()
-            .setTranslation(0, SPAWN_HEIGHT, 0)
+            .setTranslation(SPAWN_X, SPAWN_HEIGHT, SPAWN_Z)
             // Lock rotations on X and Z — prevents capsule from tipping
             .lockRotations()
 
@@ -40,6 +45,6 @@ export class PlayerEntity {
     }
 
     get startPosition(): THREE.Vector3 {
-        return new THREE.Vector3(0, SPAWN_HEIGHT, 0)
+        return new THREE.Vector3(SPAWN_X, SPAWN_HEIGHT, SPAWN_Z)
     }
 }
