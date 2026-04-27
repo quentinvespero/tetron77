@@ -1,6 +1,8 @@
 import { defineConfig } from 'vite'
 import path from 'path'
 
+const root = import.meta.dirname
+
 export default defineConfig({
     base: './',
     assetsInclude: ['**/*.png'],
@@ -14,11 +16,11 @@ export default defineConfig({
     },
     resolve: {
         alias: {
-            '@core':      path.resolve(__dirname, 'src/core'),
-            '@rendering': path.resolve(__dirname, 'src/rendering'),
-            '@physics':   path.resolve(__dirname, 'src/physics'),
-            '@player':    path.resolve(__dirname, 'src/player'),
-            '@world':     path.resolve(__dirname, 'src/world'),
+            '@core':      path.resolve(root, 'src/core'),
+            '@rendering': path.resolve(root, 'src/rendering'),
+            '@physics':   path.resolve(root, 'src/physics'),
+            '@player':    path.resolve(root, 'src/player'),
+            '@world':     path.resolve(root, 'src/world'),
         },
     },
 })
