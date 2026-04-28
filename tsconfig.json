@@ -8,13 +8,12 @@
         "skipLibCheck": true,
         "lib": ["ESNext", "DOM"],
         "types": ["node"],
-        "baseUrl": ".",
         "paths": {
-            "@core/*":      ["src/core/*"],
-            "@rendering/*": ["src/rendering/*"],
-            "@physics/*":   ["src/physics/*"],
-            "@player/*":    ["src/player/*"],
-            "@world/*":     ["src/world/*"]
+            "@core/*":      ["./src/core/*"],
+            "@rendering/*": ["./src/rendering/*"],
+            "@physics/*":   ["./src/physics/*"],
+            "@player/*":    ["./src/player/*"],
+            "@world/*":     ["./src/world/*"]
         }
     },
     "include": ["src", "vite.config.ts"]
