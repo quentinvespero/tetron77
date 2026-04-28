@@ -29,7 +29,7 @@ async function main(): Promise<void> {
 
     // 4. Chunk manager + player (map must be loaded first)
     const chunkManager = new ChunkManager(mapParser, sceneManager.scene, physics)
-    const player       = new PlayerEntity(physics)
+    const player       = new PlayerEntity(physics, mapParser)
 
     // 5. Force-load initial chunks so the player lands on terrain immediately
     chunkManager.update(player.startPosition)

@@ -2,63 +2,75 @@ import * as THREE from 'three'
 import RAPIER from '@dimforge/rapier3d-compat'
 import type { BaseGenerator, GeneratedContent } from './BaseGenerator'
 import type { ChunkCoord } from '../ChunkCoord'
-import { CHUNK_SIZE } from '../ChunkManager'
+import type { MapParser } from '../MapParser'
+import { CHUNK_SIZE } from '../constants'
+import { TERRAIN_SEGS, buildHeights, sampleBlended } from '../TerrainSampler'
+import { rng } from './generatorUtils'
 import { MAT_GROUND, MAT_ROCK } from '@rendering/materials'
 
-// Deterministic seeded random based on chunk coords + index
-const rng = (cx: number, cz: number, i: number): number => {
-    const x = Math.sin(cx * 127.1 + cz * 311.7 + i * 74.1) * 10000
-    return x - Math.floor(x)
-}
-
 export class MountainGenerator implements BaseGenerator {
-    generate(coord: ChunkCoord): GeneratedContent {
+    generate(coord: ChunkCoord, mapParser: MapParser): GeneratedContent {
         const { cx, cz } = coord
-        const worldX = cx * CHUNK_SIZE
-        const worldZ = cz * CHUNK_SIZE
+        const worldX  = cx * CHUNK_SIZE
+        const worldZ  = cz * CHUNK_SIZE
         const centerX = worldX + CHUNK_SIZE / 2
         const centerZ = worldZ + CHUNK_SIZE / 2
 
-        const meshes: THREE.Mesh[] = []
-        const bodyDescs: GeneratedContent['bodyDescs'] = []
+        const meshes:    THREE.Mesh[]                   = []
+        const bodyDescs: GeneratedContent['bodyDescs']  = []
 
-        // Flat ground base
-        const groundGeo = new THREE.PlaneGeometry(CHUNK_SIZE, CHUNK_SIZE)
+        const heights = buildHeights(centerX, centerZ, mapParser)
+
+        const groundGeo = new THREE.PlaneGeometry(CHUNK_SIZE, CHUNK_SIZE, TERRAIN_SEGS, TERRAIN_SEGS)
         groundGeo.rotateX(-Math.PI / 2)
+
+        const pos = groundGeo.attributes.position as THREE.BufferAttribute
+        for (let i = 0; i < pos.count; i++) pos.setY(i, heights[i]!)
+        pos.needsUpdate = true
+        groundGeo.computeVertexNormals()
+
         const ground = new THREE.Mesh(groundGeo, MAT_GROUND)
         ground.position.set(centerX, 0, centerZ)
         ground.receiveShadow = true
         meshes.push(ground)
 
-        const groundBody = RAPIER.RigidBodyDesc.fixed().setTranslation(centerX, 0, centerZ)
-        const groundCollider = RAPIER.ColliderDesc.cuboid(CHUNK_SIZE / 2, 0.05, CHUNK_SIZE / 2)
-        bodyDescs.push({ body: groundBody, collider: groundCollider })
+        bodyDescs.push({
+            body:     RAPIER.RigidBodyDesc.fixed().setTranslation(centerX, 0, centerZ),
+            collider: RAPIER.ColliderDesc.heightfield(TERRAIN_SEGS, TERRAIN_SEGS, heights, { x: CHUNK_SIZE, y: 1, z: CHUNK_SIZE }),
+        })
 
-        // Rock formations — 4 to 8 per chunk
+        // Rock formations — 4 to 8 per chunk, placed on top of terrain
         const count = 4 + Math.floor(rng(cx, cz, 0) * 5)
         for (let i = 0; i < count; i++) {
             const seed = i * 10
-            const lx = rng(cx, cz, seed + 1) * (CHUNK_SIZE - 8) + 4
-            const lz = rng(cx, cz, seed + 2) * (CHUNK_SIZE - 8) + 4
-            const w  = 3 + rng(cx, cz, seed + 3) * 7   // 3–10 units wide
-            const d  = 3 + rng(cx, cz, seed + 4) * 7   // 3–10 units deep
-            const h  = 6 + rng(cx, cz, seed + 5) * 19  // 6–25 units tall
-            const ry = rng(cx, cz, seed + 6) * Math.PI  // random Y rotation
+            const lx   = rng(cx, cz, seed + 1) * (CHUNK_SIZE - 8) + 4
+            const lz   = rng(cx, cz, seed + 2) * (CHUNK_SIZE - 8) + 4
+            const w    = 3 + rng(cx, cz, seed + 3) * 7    // 3–10 wide
+            const d    = 3 + rng(cx, cz, seed + 4) * 7    // 3–10 deep
+            const h    = 6 + rng(cx, cz, seed + 5) * 19   // 6–25 tall
+            const ry   = rng(cx, cz, seed + 6) * Math.PI
+            // Sample all 4 footprint corners, use min — prevents floating on slopes
+            const groundY = Math.min(
+                sampleBlended(worldX + lx - w / 2, worldZ + lz - d / 2, mapParser),
+                sampleBlended(worldX + lx + w / 2, worldZ + lz - d / 2, mapParser),
+                sampleBlended(worldX + lx - w / 2, worldZ + lz + d / 2, mapParser),
+                sampleBlended(worldX + lx + w / 2, worldZ + lz + d / 2, mapParser),
+            )
 
-            const geo = new THREE.BoxGeometry(w, h, d)
+            const geo  = new THREE.BoxGeometry(w, h, d)
             const mesh = new THREE.Mesh(geo, MAT_ROCK)
-            mesh.position.set(worldX + lx, h / 2, worldZ + lz)
+            mesh.position.set(worldX + lx, groundY + h / 2, worldZ + lz)
             mesh.rotation.y = ry
-            mesh.castShadow = true
+            mesh.castShadow    = true
             mesh.receiveShadow = true
             meshes.push(mesh)
 
-            // Box collider — half-extents
-            const body = RAPIER.RigidBodyDesc.fixed()
-                .setTranslation(worldX + lx, h / 2, worldZ + lz)
-                .setRotation({ x: 0, y: Math.sin(ry / 2), z: 0, w: Math.cos(ry / 2) })
-            const collider = RAPIER.ColliderDesc.cuboid(w / 2, h / 2, d / 2)
-            bodyDescs.push({ body, collider })
+            bodyDescs.push({
+                body: RAPIER.RigidBodyDesc.fixed()
+                    .setTranslation(worldX + lx, groundY + h / 2, worldZ + lz)
+                    .setRotation({ x: 0, y: Math.sin(ry / 2), z: 0, w: Math.cos(ry / 2) }),
+                collider: RAPIER.ColliderDesc.cuboid(w / 2, h / 2, d / 2),
+            })
         }
 
         return { meshes, bodyDescs, disposableMaterials: [] }

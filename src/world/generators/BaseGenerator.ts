@@ -1,6 +1,7 @@
 import type * as THREE from 'three'
 import type RAPIER from '@dimforge/rapier3d-compat'
 import type { ChunkCoord } from '../ChunkCoord'
+import type { MapParser } from '../MapParser'
 
 export interface GeneratedContent {
     meshes:             THREE.Mesh[]
@@ -11,5 +12,5 @@ export interface GeneratedContent {
 }
 
 export interface BaseGenerator {
-    generate(coord: ChunkCoord): GeneratedContent
+    generate(coord: ChunkCoord, mapParser: MapParser): GeneratedContent
 }

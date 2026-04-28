@@ -3,6 +3,7 @@ import type RAPIER from '@dimforge/rapier3d-compat'
 import type { ChunkCoord } from './ChunkCoord'
 import type { PhysicsWorld } from '@physics/PhysicsWorld'
 import type { BaseGenerator } from './generators/BaseGenerator'
+import type { MapParser } from './MapParser'
 
 export class Chunk {
     readonly coord: ChunkCoord
@@ -18,8 +19,9 @@ export class Chunk {
         scene: THREE.Scene,
         physics: PhysicsWorld,
         generator: BaseGenerator,
+        mapParser: MapParser,
     ): void {
-        const { meshes, bodyDescs, disposableMaterials } = generator.generate(this.coord)
+        const { meshes, bodyDescs, disposableMaterials } = generator.generate(this.coord, mapParser)
 
         for (const mesh of meshes) {
             scene.add(mesh)
