@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Unnamed World</title>
+    <style>
+      *, *::before, *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background: #000;
+        overflow: hidden;
+      }
+      canvas {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+      }
+      #ui-overlay {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        align-items: center;
+        padding: 24px;
+        gap: 12px;
+      }
+      #click-to-play {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #aaa;
+        font-family: monospace;
+        font-size: 14px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        pointer-events: none;
+        opacity: 1;
+        transition: opacity 0.3s;
+      }
+      #click-to-play.hidden {
+        opacity: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="click-to-play">Click to play</div>
+    <div id="ui-overlay"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
