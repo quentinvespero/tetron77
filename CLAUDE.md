@@ -17,9 +17,9 @@ See `DESIGN.md` for the full design specification.
 
 ## Dev Setup
 
-Not yet configured. When implemented, this project will use npm + TypeScript + Vite (static bundler):
-- `npm run dev` — local dev server
-- `npm run build` — production build
+Not yet configured. When implemented, this project will use pnpm + TypeScript + Vite (static bundler):
+- `pnpm dev` — local dev server
+- `pnpm build` — production build
 
 ## Aesthetic
 
