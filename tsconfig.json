@@ -13,7 +13,8 @@
             "@rendering/*": ["./src/rendering/*"],
             "@physics/*":   ["./src/physics/*"],
             "@player/*":    ["./src/player/*"],
-            "@world/*":     ["./src/world/*"]
+            "@world/*":     ["./src/world/*"],
+            "@ui/*":        ["./src/ui/*"]
         }
     },
     "include": ["src", "vite.config.ts"]

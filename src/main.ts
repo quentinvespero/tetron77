@@ -6,34 +6,46 @@ import { PhysicsWorld } from '@physics/PhysicsWorld'
 import { InputManager } from '@player/InputManager'
 import { PlayerEntity } from '@player/PlayerEntity'
 import { PlayerController } from '@player/PlayerController'
+import { PlayerState } from '@player/PlayerState'
 import { MapParser } from '@world/MapParser'
 import { ChunkManager } from '@world/ChunkManager'
+import { showSessionScreen } from '@ui/SessionScreen'
+import { HUD } from '@ui/HUD'
 
 async function main(): Promise<void> {
     // 1. Rapier WASM must initialise before anything else
     await RAPIER.init()
 
-    // 2. Core systems
+    // 2. Core systems — initialise in parallel with the session screen
+    const mapLoadPromise    = MapParser.load('/map.png')
+    const usernamePromise   = showSessionScreen()
+
     const physics      = new PhysicsWorld()
     const sceneManager = new SceneManager()
     const cameraRig    = new CameraRig(sceneManager)
 
-    // 3. World map
-    const mapParser    = await MapParser.load('/map.png')
+    // 3. Wait for map and username entry concurrently
+    const [mapParser, username] = await Promise.all([mapLoadPromise, usernamePromise])
 
-    // 4. Chunk manager
+    // 4. Chunk manager + player (map must be loaded first)
     const chunkManager = new ChunkManager(mapParser, sceneManager.scene, physics)
+    const player       = new PlayerEntity(physics)
 
-    // 5. Player
-    const input      = new InputManager().init()
-    const player     = new PlayerEntity(physics)
-    const controller = new PlayerController(input, player, cameraRig, physics)
-
-    // 6. Force-load initial chunks before the loop starts so the player lands on terrain
+    // 5. Force-load initial chunks so the player lands on terrain immediately
     chunkManager.update(player.startPosition)
 
-    // 7. Game loop — registration order matters
-    //    physics → controller (reads physics) → chunks (tracks player pos) → render
+    // 6. Input — init after session screen so its click listener doesn't conflict
+    const input = new InputManager().init()
+
+    // 7. Game state + HUD
+    const playerState = new PlayerState(username, player.startPosition)
+    const hud         = new HUD()
+    hud.update(playerState.hp, playerState.maxHp)
+
+    // 8. Player controller wired to state + HUD
+    const controller = new PlayerController(input, player, cameraRig, physics, playerState, () => hud.flashDeath())
+
+    // 9. Game loop — registration order: physics → controller → chunks → hud + render
     const loop = new GameLoop()
     loop.register(physics)
     loop.register(controller)
@@ -41,12 +53,15 @@ async function main(): Promise<void> {
         update: () => chunkManager.update(player.position),
     })
     loop.register({
-        update: () => sceneManager.render(cameraRig.camera),
+        update: () => {
+            hud.update(playerState.hp, playerState.maxHp)
+            sceneManager.render(cameraRig.camera)
+        },
     })
 
     loop.start()
 
-    console.log('[main] Game started. Click to play.')
+    console.log(`[main] Session started. Welcome, ${username}.`)
 }
 
 main().catch(console.error)

@@ -19,40 +19,205 @@
         width: 100vw;
         height: 100vh;
       }
-      #ui-overlay {
+
+      /* ── Session screen ─────────────────────────────────────────── */
+      #session-screen {
         position: fixed;
         inset: 0;
-        pointer-events: none;
+        background: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        transition: opacity 0.4s;
+      }
+      #session-content {
         display: flex;
         flex-direction: column;
-        justify-content: flex-end;
         align-items: center;
-        padding: 24px;
-        gap: 12px;
+        gap: 28px;
+        width: 300px;
       }
+      #session-title {
+        font-family: monospace;
+        font-size: 20px;
+        letter-spacing: 0.35em;
+        color: #bbb;
+        text-transform: uppercase;
+      }
+      #session-subtitle {
+        font-family: monospace;
+        font-size: 10px;
+        letter-spacing: 0.2em;
+        color: #444;
+        text-transform: uppercase;
+      }
+      #username-input {
+        background: transparent;
+        border: none;
+        border-bottom: 1px solid #333;
+        color: #ccc;
+        font-family: monospace;
+        font-size: 15px;
+        letter-spacing: 0.2em;
+        text-align: center;
+        padding: 8px 0;
+        width: 100%;
+        outline: none;
+        text-transform: uppercase;
+        caret-color: #666;
+      }
+      #username-input::placeholder {
+        color: #2a2a2a;
+      }
+      #username-input:focus {
+        border-bottom-color: #555;
+      }
+      #enter-world-btn {
+        background: transparent;
+        border: 1px solid #2a2a2a;
+        color: #666;
+        font-family: monospace;
+        font-size: 10px;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        padding: 10px 36px;
+        cursor: pointer;
+        transition: color 0.2s, border-color 0.2s;
+      }
+      #enter-world-btn:hover {
+        color: #bbb;
+        border-color: #555;
+      }
+
+      /* ── Pointer-lock hint ─────────────────────────────────────── */
       #click-to-play {
         position: fixed;
         inset: 0;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #aaa;
+        color: #444;
         font-family: monospace;
-        font-size: 14px;
-        letter-spacing: 0.15em;
+        font-size: 11px;
+        letter-spacing: 0.2em;
         text-transform: uppercase;
         pointer-events: none;
         opacity: 1;
         transition: opacity 0.3s;
+        z-index: 10;
       }
       #click-to-play.hidden {
         opacity: 0;
       }
+
+      /* ── HUD ────────────────────────────────────────────────────── */
+      #hud {
+        display: none;
+        pointer-events: none;
+      }
+      #hud.visible {
+        display: block;
+      }
+
+      /* Crosshair */
+      #crosshair {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 14px;
+        height: 14px;
+      }
+      #crosshair::before,
+      #crosshair::after {
+        content: '';
+        position: absolute;
+        background: rgba(255, 255, 255, 0.55);
+      }
+      #crosshair::before {
+        width: 1px;
+        height: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+      #crosshair::after {
+        height: 1px;
+        width: 100%;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+
+      /* Health bar */
+      #health-bar {
+        position: fixed;
+        bottom: 24px;
+        left: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+      #health-label {
+        font-family: monospace;
+        font-size: 11px;
+        letter-spacing: 0.2em;
+        color: #555;
+        text-transform: uppercase;
+      }
+      #health-track {
+        width: 180px;
+        height: 5px;
+        background: #1e1e1e;
+      }
+      #health-fill {
+        height: 100%;
+        width: 100%;
+        background: #aaa;
+        transition: width 0.12s ease-out;
+      }
+
+      /* ── Death flash ────────────────────────────────────────────── */
+      #death-flash {
+        position: fixed;
+        inset: 0;
+        background: #fff;
+        opacity: 0;
+        pointer-events: none;
+        z-index: 50;
+      }
+      @keyframes death-flash-anim {
+        0%   { opacity: 0.55; }
+        100% { opacity: 0; }
+      }
+      #death-flash.active {
+        animation: death-flash-anim 0.5s ease-out forwards;
+      }
     </style>
   </head>
   <body>
+    <div id="session-screen">
+      <div id="session-content">
+        <div id="session-title">Unnamed World</div>
+        <div id="session-subtitle">Enter your name to begin</div>
+        <input id="username-input" type="text" maxlength="20" placeholder="NAME" autocomplete="off" />
+        <button id="enter-world-btn">Enter World</button>
+      </div>
+    </div>
+
     <div id="click-to-play">Click to play</div>
-    <div id="ui-overlay"></div>
+
+    <div id="hud">
+      <div id="crosshair"></div>
+      <div id="health-bar">
+        <div id="health-label">HP</div>
+        <div id="health-track">
+          <div id="health-fill"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="death-flash"></div>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
