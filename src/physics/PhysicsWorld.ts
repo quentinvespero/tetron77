@@ -5,13 +5,15 @@ const PHYSICS_STEP = 1 / 60
 // Max steps per frame to prevent spiral-of-death on slow frames
 const MAX_STEPS = 3
 
+// Exported so kinematic controllers can apply the same magnitude manually
+export const WORLD_GRAVITY = 20
+
 export class PhysicsWorld {
     readonly world: RAPIER.World
     private accumulator = 0
 
     constructor() {
-        // Gravity pointing down
-        this.world = new RAPIER.World({ x: 0, y: -20, z: 0 })
+        this.world = new RAPIER.World({ x: 0, y: -WORLD_GRAVITY, z: 0 })
     }
 
     /**

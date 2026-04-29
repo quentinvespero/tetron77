@@ -21,8 +21,9 @@ export class WaterGenerator implements BaseGenerator {
         mesh.position.set(centerX, y, centerZ)
         mesh.receiveShadow = true
 
-        const body     = RAPIER.RigidBodyDesc.fixed().setTranslation(centerX, y, centerZ)
-        const collider = RAPIER.ColliderDesc.cuboid(CHUNK_SIZE / 2, 0.05, CHUNK_SIZE / 2)
+        // Body centered 0.5m below mesh so the collider top is flush with the water surface
+        const body     = RAPIER.RigidBodyDesc.fixed().setTranslation(centerX, y - 0.5, centerZ)
+        const collider = RAPIER.ColliderDesc.cuboid(CHUNK_SIZE / 2, 0.5, CHUNK_SIZE / 2)
 
         return {
             meshes:              [mesh],

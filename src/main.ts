@@ -43,15 +43,16 @@ async function main(): Promise<void> {
     hud.update(playerState.hp, playerState.maxHp)
 
     // 8. Player controller wired to state + HUD
-    const controller = new PlayerController(input, player, cameraRig, physics, playerState, () => hud.flashDeath())
+    const controller = new PlayerController(input, player, cameraRig, playerState, () => hud.flashDeath())
 
-    // 9. Game loop — registration order: physics → controller → chunks → hud + render
+    // 9. Game loop — chunk streaming runs first so terrain colliders exist
+    //    before physics steps and before the KCC queries them for movement
     const loop = new GameLoop()
-    loop.register(physics)
-    loop.register(controller)
     loop.register({
         update: () => chunkManager.update(player.position),
     })
+    loop.register(physics)
+    loop.register(controller)
     loop.register({
         update: () => {
             hud.update(playerState.hp, playerState.maxHp)
