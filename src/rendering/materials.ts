@@ -11,7 +11,7 @@ export const PALETTE = {
     ambient:    0xffffff,
     sunlight:   0xaac4d8, // pale cold blue-silver — moonlight, not sunlight
     skyHorizon: 0x0a0a0a, // matches fog — seamless blend at the horizon line
-    skyZenith:  0x1e3050, // dark navy — visible night sky
+    skyZenith:  0x3a6090, // dark navy — visible night sky
 } as const
 
 // Shared materials — avoids creating duplicate material objects per mesh
