@@ -2,14 +2,16 @@ import * as THREE from 'three'
 
 // B&W palette — shared across all generators and entities
 export const PALETTE = {
-    ground:    0x222222,
-    groundAlt: 0x2e2e2e,
-    rock:      0x1a1a1a,
-    ruin:      0x2a2a2a,
-    water:     0x0d0d0d,
-    fog:       0x0a0a0a,
-    ambient:   0xffffff,
-    sunlight:  0xe0e0e0,
+    ground:     0x222222,
+    groundAlt:  0x2e2e2e,
+    rock:       0x1a1a1a,
+    ruin:       0x2a2a2a,
+    water:      0x0d0d0d,
+    fog:        0x0a0a0a,
+    ambient:    0xffffff,
+    sunlight:   0xaac4d8, // pale cold blue-silver — moonlight, not sunlight
+    skyHorizon: 0x0a0a0a, // matches fog — seamless blend at the horizon line
+    skyZenith:  0x1e3050, // dark navy — visible night sky
 } as const
 
 // Shared materials — avoids creating duplicate material objects per mesh

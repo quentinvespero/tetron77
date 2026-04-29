@@ -6,13 +6,13 @@ export class SceneManager {
     readonly renderer: THREE.WebGLRenderer
 
     private resizeCallbacks: Array<() => void> = []
+    private skyDome!: THREE.Mesh
 
     constructor() {
         this.scene = new THREE.Scene()
 
         // Exponential fog — fades into near-black at ~3 chunks distance
         this.scene.fog = new THREE.FogExp2(PALETTE.fog, 0.025)
-        this.scene.background = new THREE.Color(PALETTE.fog)
 
         this.renderer = new THREE.WebGLRenderer({ antialias: true })
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
@@ -25,7 +25,7 @@ export class SceneManager {
 
         // Hemisphere light: cold overcast sky fill — no harsh directionality
         const hemi = new THREE.HemisphereLight(
-            0x8899aa, // sky: cold desaturated blue-gray, not pure white
+            0x556677, // sky: cooler blue-gray, moonlit overcast
             0x111111, // ground bounce: very dark
             1.2       // needs to be high — base materials are very dark (0x222222)
         )
@@ -46,12 +46,47 @@ export class SceneManager {
         sun.shadow.bias = -0.001
         this.scene.add(sun)
 
+        this.buildSkyDome()
+
         document.body.appendChild(this.renderer.domElement)
 
         window.addEventListener('resize', this.handleResize)
     }
 
+    private buildSkyDome(): void {
+        const radius = 450
+        const geo = new THREE.SphereGeometry(radius, 32, 16)
+
+        // Vertex color gradient: horizon color at equator → zenith color at top pole
+        const horizon = new THREE.Color(PALETTE.skyHorizon)
+        const zenith  = new THREE.Color(PALETTE.skyZenith)
+        const pos     = geo.attributes.position as THREE.BufferAttribute
+        const colBuf  = new Float32Array(pos.count * 3)
+
+        for (let i = 0; i < pos.count; i++) {
+            const t = Math.max(0, pos.getY(i) / radius) // 0 at equator, 1 at top
+            const c = horizon.clone().lerp(zenith, t)
+            colBuf[i * 3]     = c.r
+            colBuf[i * 3 + 1] = c.g
+            colBuf[i * 3 + 2] = c.b
+        }
+
+        geo.setAttribute('color', new THREE.BufferAttribute(colBuf, 3))
+
+        const mat = new THREE.MeshBasicMaterial({
+            vertexColors: true,
+            side: THREE.BackSide, // render inside of sphere
+            fog: false,           // sky must not be eaten by scene fog
+            depthWrite: false,    // never write to depth buffer — sky is always "behind" everything
+        })
+
+        this.skyDome = new THREE.Mesh(geo, mat)
+        this.scene.add(this.skyDome)
+    }
+
     render(camera: THREE.Camera): void {
+        // Keep dome centered on camera so it never gets clipped by the far plane
+        this.skyDome.position.copy(camera.position)
         this.renderer.render(this.scene, camera)
     }
 
