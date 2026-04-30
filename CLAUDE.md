@@ -90,6 +90,6 @@ Not yet built:
 Intentionally minimal — only health bar and compass (compass shows nearby unexplored POIs as player rotates).
 
 ## Design Constraints
-- Static site only — no server, no database, no auth
+- Static site only — no server, no database, no auth (ideally)
 - Session-only state — nothing persists between sessions
-- Keep loading screens minimal; chunk streaming should handle most of the world seamlessly
+- Keep loading screens minimal if possible; chunk streaming should handle most of the world seamlessly
