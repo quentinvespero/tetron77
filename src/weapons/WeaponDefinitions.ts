@@ -17,7 +17,7 @@ export const RIFLE: WeaponDef = {
     reloadTime: 2.0,
     fireRate: 2,
     range: 300,
-    defaultFov: 75,
+    defaultFov: 65,
     scopeFov: 28,
     spread: 0.003,
 }

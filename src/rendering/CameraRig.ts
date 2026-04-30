@@ -9,7 +9,7 @@ export class CameraRig {
 
     constructor(sceneManager: SceneManager) {
         this.camera = new THREE.PerspectiveCamera(
-            75,
+            65,
             window.innerWidth / window.innerHeight,
             0.05,
             500

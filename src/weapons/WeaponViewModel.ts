@@ -222,10 +222,10 @@ export class WeaponViewModel {
     update(dt: number, deltaYaw = 0, deltaPitch = 0): void {
         this.time += dt
 
-        const LAG_SCALE_X  = 0.22
-        const LAG_SCALE_Y  = 0.11
-        const LAG_CLAMP_X  = 0.08
-        const LAG_CLAMP_Y  = 0.04
+        const LAG_SCALE_X  = 0.16
+        const LAG_SCALE_Y  = 0.08
+        const LAG_CLAMP_X  = 0.06
+        const LAG_CLAMP_Y  = 0.03
         const RETURN_SPEED = 10
 
         this.lagX = THREE.MathUtils.clamp(
@@ -243,6 +243,6 @@ export class WeaponViewModel {
 
         this.group.position.x = GROUP_X + Math.sin(this.time * 0.8) * 0.001 + this.lagX
         this.group.position.y = GROUP_Y + Math.sin(this.time * 1.4) * 0.003 + this.lagY
-        this.group.rotation.z = -this.lagX * 5
+        this.group.rotation.z = -this.lagX * 4
     }
 }
