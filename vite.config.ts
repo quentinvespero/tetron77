@@ -23,6 +23,7 @@ export default defineConfig({
             '@world':     path.resolve(root, 'src/world'),
             '@ui':        path.resolve(root, 'src/ui'),
             '@audio':     path.resolve(root, 'src/audio'),
+            '@weapons':   path.resolve(root, 'src/weapons'),
         },
     },
 })

@@ -13,6 +13,8 @@ import { showSessionScreen } from '@ui/SessionScreen'
 import { HUD } from '@ui/HUD'
 import { AmbientMusic } from '@audio/AmbientMusic'
 import { AtmosphericParticles } from '@rendering/AtmosphericParticles'
+import { WeaponSystem } from '@weapons/WeaponSystem'
+import { RIFLE } from '@weapons/WeaponDefinitions'
 
 async function main(): Promise<void> {
     // 1. Rapier WASM must initialise before anything else
@@ -25,6 +27,8 @@ async function main(): Promise<void> {
     const physics      = new PhysicsWorld()
     const sceneManager = new SceneManager()
     const cameraRig    = new CameraRig(sceneManager)
+    // Camera must be in the scene so children (weapon view model) are included in render traversal
+    sceneManager.scene.add(cameraRig.camera)
     sceneManager.initPostProcessing(cameraRig.camera)
 
     // 3. Wait for map and username entry concurrently
@@ -50,13 +54,18 @@ async function main(): Promise<void> {
     // 8. Player controller wired to state + HUD
     const controller = new PlayerController(input, player, cameraRig, playerState, () => hud.flashDeath())
 
-    // 9. Game loop — chunk streaming runs first so terrain colliders exist
-    //    before physics steps and before the KCC queries them for movement
+    // 9. Weapon system — registered before controller so it reads mouse state
+    //    before controller's flushJustPressed() clears it
+    const weaponSystem = new WeaponSystem(RIFLE, cameraRig.camera, sceneManager.scene, input, hud)
+
+    // 10. Game loop — chunk streaming runs first so terrain colliders exist
+    //     before physics steps and before the KCC queries them for movement
     const loop = new GameLoop()
     loop.register({
         update: () => chunkManager.update(player.position),
     })
     loop.register(physics)
+    loop.register(weaponSystem)
     loop.register(controller)
     loop.register(new AtmosphericParticles(sceneManager.scene, cameraRig.camera))
     loop.register({

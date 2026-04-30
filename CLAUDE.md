@@ -79,11 +79,12 @@ Built:
 - Physics integration (`PhysicsWorld.ts`): Rapier WASM, gravity -20
 - Player controller: first-person movement, username entry, health, fall damage, respawn
 - Ambient music (`AmbientMusic.ts`): looping `.opus` track, starts after login with a 5s volume fade-in
+- Weapon system (`src/weapons/`): long-range rifle, 8-round mag, unlimited ammo, R to reload, right-click scope (FOV 28°), raycast hit detection, muzzle flash + hit sparks, first-person view model with idle sway
 
 Not yet built:
-- Weapons system
 - Compass HUD (showing nearby POIs)
 - Enemies / encounter logic
+- Weapon pickups in the world (second weapon type needed first)
 
 ### UI
 Intentionally minimal — only health bar and compass (compass shows nearby unexplored POIs as player rotates).

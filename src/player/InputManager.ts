@@ -1,6 +1,8 @@
 export class InputManager {
     keys: Record<string, boolean> = {}
     private justPressed: Record<string, boolean> = {}
+    private mouseButtons: Record<number, boolean> = {}
+    private justPressedMouse: Record<number, boolean> = {}
     mouseDeltaX = 0
     mouseDeltaY = 0
     isPointerLocked = false
@@ -22,16 +24,23 @@ export class InputManager {
             this.mouseDeltaX += e.movementX
             this.mouseDeltaY += e.movementY
         })
+        document.addEventListener('mousedown', (e) => {
+            if (e.button === 0 && !this.isPointerLocked) {
+                document.body.requestPointerLock()
+            }
+            // Only flag just-pressed on the leading edge (button was up)
+            if (!this.mouseButtons[e.button]) this.justPressedMouse[e.button] = true
+            this.mouseButtons[e.button] = true
+        })
+        document.addEventListener('mouseup', (e) => {
+            this.mouseButtons[e.button] = false
+        })
+        // Prevent context menu so right-click can be used for scoping
+        document.addEventListener('contextmenu', (e) => e.preventDefault())
         document.addEventListener('pointerlockchange', () => {
             this.isPointerLocked = document.pointerLockElement !== null
             const hint = document.getElementById('click-to-play')
             if (hint) hint.classList.toggle('hidden', this.isPointerLocked)
-        })
-        // Click anywhere on the canvas to acquire pointer lock
-        document.addEventListener('click', () => {
-            if (!this.isPointerLocked) {
-                document.body.requestPointerLock()
-            }
         })
 
         return this
@@ -55,8 +64,18 @@ export class InputManager {
         return this.justPressed[code] === true
     }
 
+    isMouseDown(button: number): boolean {
+        return this.mouseButtons[button] === true
+    }
+
+    /** True only on the first frame a mouse button transitions from up to down. */
+    isMouseJustPressed(button: number): boolean {
+        return this.justPressedMouse[button] === true
+    }
+
     /** Must be called once per frame after all input consumers have run. */
     flushJustPressed(): void {
         this.justPressed = {}
+        this.justPressedMouse = {}
     }
 }

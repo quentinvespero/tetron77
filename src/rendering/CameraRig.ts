@@ -23,6 +23,11 @@ export class CameraRig {
         })
     }
 
+    setFov(fov: number): void {
+        this.camera.fov = fov
+        this.camera.updateProjectionMatrix()
+    }
+
     /**
      * Called each frame by PlayerController after physics step.
      * @param position  World-space position of the physics body base
