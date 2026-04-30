@@ -2,7 +2,7 @@ export const ColorGradeShader = {
     uniforms: {
         tDiffuse:        { value: null },
         saturation:      { value: 0.8 }, // 0 = full grayscale, 1 = original color
-        brightness:      { value: 0.01  }, // additive lift applied before contrast
+        brightness:      { value: -0.007  }, // additive lift applied before contrast
         contrast:        { value: 1 },
         vignetteStrength:{ value: 1  },
     },

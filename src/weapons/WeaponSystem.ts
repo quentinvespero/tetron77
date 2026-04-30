@@ -20,6 +20,7 @@ export class WeaponSystem {
     private reloadTimer = 0
     private fireCooldown = 0
     private isScoped = false
+    private readonly prevCameraQuat = new THREE.Quaternion()
 
     constructor(
         private readonly def: WeaponDef,
@@ -55,7 +56,12 @@ export class WeaponSystem {
             }
         }
 
-        this.viewModel.update(dt)
+        const curQuat = this.cameraRig.camera.getWorldQuaternion(new THREE.Quaternion())
+        const deltaQuat = this.prevCameraQuat.clone().invert().multiply(curQuat)
+        const deltaEuler = new THREE.Euler().setFromQuaternion(deltaQuat, 'YXZ')
+        this.prevCameraQuat.copy(curQuat)
+
+        this.viewModel.update(dt, deltaEuler.y, deltaEuler.x)
 
         if (!this.input.isPointerLocked) return
 
@@ -136,18 +142,20 @@ export class WeaponSystem {
 
     private spawnMuzzleFlash(): void {
         const mat = new THREE.MeshStandardMaterial({
-            color: 0xffffff,
-            emissive: 0xffffff,
-            emissiveIntensity: 6,
+            color: 0xff6600,
+            emissive: 0xff4400,
+            emissiveIntensity: 0.4,
+            transparent: true,
+            opacity: 0.35,
             depthTest: false,
             depthWrite: false,
         })
-        const mesh = new THREE.Mesh(new THREE.SphereGeometry(0.04, 4, 4), mat)
+        const mesh = new THREE.Mesh(new THREE.SphereGeometry(0.012, 4, 4), mat)
         mesh.renderOrder = 999
         mesh.position.copy(BARREL_TIP_LOCAL)
         this.viewModel.group.add(mesh)
         this.effects.push({
-            ttl: 0.08,
+            ttl: 0.04,
             remove: () => {
                 this.viewModel.group.remove(mesh)
                 mesh.geometry.dispose()
