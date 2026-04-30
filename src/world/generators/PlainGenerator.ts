@@ -4,7 +4,7 @@ import type { BaseGenerator, GeneratedContent } from './BaseGenerator'
 import type { ChunkCoord } from '../ChunkCoord'
 import type { MapParser } from '../MapParser'
 import { CHUNK_SIZE } from '../constants'
-import { TERRAIN_SEGS, buildHeights } from '../TerrainSampler'
+import { TERRAIN_SEGS, buildChunkHeights } from '../TerrainSampler'
 import { MAT_GROUND } from '@rendering/materials'
 
 export class PlainGenerator implements BaseGenerator {
@@ -12,7 +12,7 @@ export class PlainGenerator implements BaseGenerator {
         const centerX = coord.cx * CHUNK_SIZE + CHUNK_SIZE / 2
         const centerZ = coord.cz * CHUNK_SIZE + CHUNK_SIZE / 2
 
-        const heights = buildHeights(centerX, centerZ, mapParser)
+        const { visual: heights, physics: physicsHeights } = buildChunkHeights(centerX, centerZ, mapParser)
 
         const geometry = new THREE.PlaneGeometry(CHUNK_SIZE, CHUNK_SIZE, TERRAIN_SEGS, TERRAIN_SEGS)
         geometry.rotateX(-Math.PI / 2)
@@ -28,7 +28,7 @@ export class PlainGenerator implements BaseGenerator {
 
         const bodyDesc     = RAPIER.RigidBodyDesc.fixed().setTranslation(centerX, 0, centerZ)
         const colliderDesc = RAPIER.ColliderDesc.heightfield(
-            TERRAIN_SEGS, TERRAIN_SEGS, heights,
+            TERRAIN_SEGS, TERRAIN_SEGS, physicsHeights,
             { x: CHUNK_SIZE, y: 1, z: CHUNK_SIZE },
         )
 

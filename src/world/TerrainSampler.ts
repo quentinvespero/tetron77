@@ -103,23 +103,33 @@ export const sampleBlended = (worldX: number, worldZ: number, mapParser: MapPars
 }
 
 /**
- * Builds the height grid for a chunk in a single pass, shared between the visual mesh
- * and the Rapier heightfield collider.
+ * Builds both height arrays for a chunk in a single terrain-sampling pass.
  *
- * Index mapping: heights[row*(TERRAIN_SEGS+1)+col] aligns with PlaneGeometry vertex i
- * after rotateX(-π/2) — both use the same (row→Z, col→X) ordering.
+ * - `visual`:  row-major, matches PlaneGeometry vertex order after rotateX(-π/2)
+ *              heights[row*(N)+col] → vertex at (col→X, row→Z)
+ * - `physics`: column-major, as required by RAPIER.ColliderDesc.heightfield
+ *              (@dimforge/rapier3d-compat ^0.19.3 — the WASM binding stores the
+ *              heightfield matrix column-first; swapping row/col produces a
+ *              physics/visual mismatch on non-symmetric terrain)
  */
-export const buildHeights = (centerX: number, centerZ: number, mapParser: MapParser): Float32Array => {
+export const buildChunkHeights = (
+    centerX: number,
+    centerZ: number,
+    mapParser: MapParser,
+): { visual: Float32Array; physics: Float32Array } => {
     const N       = TERRAIN_SEGS + 1
-    const heights = new Float32Array(N * N)
+    const visual  = new Float32Array(N * N)
+    const physics = new Float32Array(N * N)
     for (let row = 0; row < N; row++) {
         for (let col = 0; col < N; col++) {
-            heights[row * N + col] = sampleBlended(
+            const h = sampleBlended(
                 centerX + (col / TERRAIN_SEGS - 0.5) * CHUNK_SIZE,
                 centerZ + (row / TERRAIN_SEGS - 0.5) * CHUNK_SIZE,
                 mapParser,
             )
+            visual[row * N + col] = h
+            physics[col * N + row] = h
         }
     }
-    return heights
+    return { visual, physics }
 }

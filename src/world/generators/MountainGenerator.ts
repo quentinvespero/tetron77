@@ -4,7 +4,7 @@ import type { BaseGenerator, GeneratedContent } from './BaseGenerator'
 import type { ChunkCoord } from '../ChunkCoord'
 import type { MapParser } from '../MapParser'
 import { CHUNK_SIZE } from '../constants'
-import { TERRAIN_SEGS, buildHeights, sampleBlended } from '../TerrainSampler'
+import { TERRAIN_SEGS, buildChunkHeights, sampleBlended } from '../TerrainSampler'
 import { rng } from './generatorUtils'
 import { MAT_GROUND, MAT_ROCK } from '@rendering/materials'
 
@@ -19,7 +19,7 @@ export class MountainGenerator implements BaseGenerator {
         const meshes:    THREE.Mesh[]                   = []
         const bodyDescs: GeneratedContent['bodyDescs']  = []
 
-        const heights = buildHeights(centerX, centerZ, mapParser)
+        const { visual: heights, physics: physicsHeights } = buildChunkHeights(centerX, centerZ, mapParser)
 
         const groundGeo = new THREE.PlaneGeometry(CHUNK_SIZE, CHUNK_SIZE, TERRAIN_SEGS, TERRAIN_SEGS)
         groundGeo.rotateX(-Math.PI / 2)
@@ -36,7 +36,7 @@ export class MountainGenerator implements BaseGenerator {
 
         bodyDescs.push({
             body:     RAPIER.RigidBodyDesc.fixed().setTranslation(centerX, 0, centerZ),
-            collider: RAPIER.ColliderDesc.heightfield(TERRAIN_SEGS, TERRAIN_SEGS, heights, { x: CHUNK_SIZE, y: 1, z: CHUNK_SIZE }),
+            collider: RAPIER.ColliderDesc.heightfield(TERRAIN_SEGS, TERRAIN_SEGS, physicsHeights, { x: CHUNK_SIZE, y: 1, z: CHUNK_SIZE }),
         })
 
         // Rock formations — 4 to 8 per chunk, placed on top of terrain

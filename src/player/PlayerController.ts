@@ -19,6 +19,10 @@ const VOID_Y = -30
 const FALL_DAMAGE_THRESHOLD = 13
 const FALL_DAMAGE_SCALE     = 5
 
+// Minimum difference between requested and resolved Y displacement to conclude
+// a surface is holding us up (guards against floating-point noise near zero)
+const TERRAIN_SUPPORT_EPSILON = 0.005
+
 export class PlayerController {
     private yaw   = 0
     private pitch = 0
@@ -104,9 +108,14 @@ export class PlayerController {
         const wasGrounded = this._isGrounded
         this._isGrounded  = this.player.characterController.computedGrounded()
 
-        if (this._isGrounded) {
-            // Apply fall damage on the landing frame
-            if (!wasGrounded && prevYVel < -FALL_DAMAGE_THRESHOLD) {
+        // computedGrounded() is false on slopes steeper than maxSlopeClimbAngle.
+        // Independently detect any terrain support: if we tried to fall but the KCC
+        // resolved less downward movement, the surface is holding us up.
+        const terrainSupport = this._yVel < 0 && move.y > displacement.y + TERRAIN_SUPPORT_EPSILON
+
+        if (this._isGrounded || terrainSupport) {
+            // Apply fall damage on the landing frame (only on true ground contact)
+            if (this._isGrounded && !wasGrounded && prevYVel < -FALL_DAMAGE_THRESHOLD) {
                 const damage = Math.round((-prevYVel - FALL_DAMAGE_THRESHOLD) * FALL_DAMAGE_SCALE)
                 this.playerState.takeDamage(damage)
                 if (this.playerState.isDead()) {
@@ -114,7 +123,7 @@ export class PlayerController {
                     return
                 }
             }
-            // Stop accumulating gravity while standing on solid ground
+            // Stop accumulating gravity while any surface is supporting us
             if (this._yVel < 0) this._yVel = 0
         }
     }
