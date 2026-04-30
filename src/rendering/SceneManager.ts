@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { PALETTE } from './materials'
+import { PostProcessor } from './PostProcessor'
 
 export class SceneManager {
     readonly scene: THREE.Scene
@@ -7,6 +8,7 @@ export class SceneManager {
 
     private resizeCallbacks: Array<() => void> = []
     private skyDome!: THREE.Mesh
+    private postProcessor: PostProcessor | null = null
 
     constructor() {
         this.scene = new THREE.Scene()
@@ -27,12 +29,12 @@ export class SceneManager {
         const hemi = new THREE.HemisphereLight(
             0x556677, // sky: cooler blue-gray, moonlit overcast
             0x111111, // ground bounce: very dark
-            1.2       // needs to be high — base materials are very dark (0x222222)
+            2.2       // needs to be high — base materials are very dark (0x222222)
         )
         this.scene.add(hemi)
 
         // Directional sun: angled from above-left, casts shadows
-        const sun = new THREE.DirectionalLight(PALETTE.sunlight, 3.2)
+        const sun = new THREE.DirectionalLight(PALETTE.sunlight, 5.5)
         sun.position.set(50, 80, 30)
         sun.castShadow = true
         sun.shadow.camera.near = 0.5
@@ -84,10 +86,18 @@ export class SceneManager {
         this.scene.add(this.skyDome)
     }
 
-    render(camera: THREE.Camera): void {
+    initPostProcessing(camera: THREE.Camera): void {
+        this.postProcessor = new PostProcessor(this.renderer, this.scene, camera)
+    }
+
+    render(camera: THREE.Camera, dt = 0): void {
         // Keep dome centered on camera so it never gets clipped by the far plane
         this.skyDome.position.copy(camera.position)
-        this.renderer.render(this.scene, camera)
+        if (this.postProcessor) {
+            this.postProcessor.render(dt)
+        } else {
+            this.renderer.render(this.scene, camera)
+        }
     }
 
     onResize(callback: () => void): void {
@@ -96,6 +106,7 @@ export class SceneManager {
 
     private handleResize = (): void => {
         this.renderer.setSize(window.innerWidth, window.innerHeight)
+        this.postProcessor?.setSize(window.innerWidth, window.innerHeight)
         for (const cb of this.resizeCallbacks) cb()
     }
 
