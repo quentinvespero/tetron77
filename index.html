@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Unnamed World</title>
+    <title>Tetron77</title>
     <style>
       *, *::before, *::after {
         margin: 0;
@@ -176,6 +176,87 @@
         transition: width 0.12s ease-out;
       }
 
+      /* ── Ammo counter ──────────────────────────────────────────── */
+      #ammo-counter {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        font-family: monospace;
+        font-size: 14px;
+        letter-spacing: 0.12em;
+        color: #666;
+        text-align: right;
+        line-height: 1.4;
+      }
+      #ammo-bullets {
+        color: #888;
+      }
+      #ammo-reload {
+        font-size: 10px;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        color: #555;
+        animation: reload-pulse 0.9s ease-in-out infinite;
+      }
+      #ammo-reload.hidden { display: none; }
+      @keyframes reload-pulse {
+        0%, 100% { opacity: 0.25; }
+        50%       { opacity: 0.8; }
+      }
+
+      /* ── Scope overlay ──────────────────────────────────────────── */
+      #scope-overlay {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 20;
+        opacity: 0;
+        transition: opacity 0.07s;
+        background: radial-gradient(circle at center, transparent 18vmin, rgba(0,0,0,0.97) 21vmin);
+      }
+      #scope-overlay.active {
+        opacity: 1;
+      }
+      /* Thin scope reticle lines through the clear window */
+      #scope-overlay::before,
+      #scope-overlay::after {
+        content: '';
+        position: absolute;
+        background: rgba(255, 255, 255, 0.18);
+        opacity: 0;
+        transition: opacity 0.07s;
+      }
+      #scope-overlay.active::before,
+      #scope-overlay.active::after {
+        opacity: 1;
+      }
+      #scope-overlay::before {
+        width: 100%;
+        height: 1px;
+        top: 50%;
+        left: 0;
+        transform: translateY(-50%);
+      }
+      #scope-overlay::after {
+        height: 100%;
+        width: 1px;
+        left: 50%;
+        top: 0;
+        transform: translateX(-50%);
+      }
+
+      /* Crosshair becomes a dot when scoped */
+      #crosshair.scoped {
+        width: 4px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.75);
+        border-radius: 50%;
+      }
+      #crosshair.scoped::before,
+      #crosshair.scoped::after {
+        display: none;
+      }
+
       /* ── Death flash ────────────────────────────────────────────── */
       #death-flash {
         position: fixed;
@@ -214,7 +295,13 @@
           <div id="health-fill"></div>
         </div>
       </div>
+      <div id="ammo-counter">
+        <span id="ammo-bullets">8 / ∞</span>
+        <span id="ammo-reload" class="hidden">Reloading</span>
+      </div>
     </div>
+
+    <div id="scope-overlay"></div>
 
     <div id="death-flash"></div>
 
