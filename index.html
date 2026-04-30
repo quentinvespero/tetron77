@@ -257,6 +257,35 @@
         display: none;
       }
 
+      /* ── Key hints ─────────────────────────────────────────────── */
+      #key-hints {
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 24px;
+        font-family: monospace;
+        font-size: 10px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: #666;
+        pointer-events: none;
+        background: rgba(0, 0, 0, 0.45);
+        padding: 6px 14px;
+      }
+      .key-hint {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .key-hint .key {
+        border: 1px solid #333;
+        padding: 1px 5px;
+        color: #555;
+        font-size: 9px;
+      }
+
       /* ── Death flash ────────────────────────────────────────────── */
       #death-flash {
         position: fixed;
@@ -298,6 +327,11 @@
       <div id="ammo-counter">
         <span id="ammo-bullets">8 / ∞</span>
         <span id="ammo-reload" class="hidden">Reloading</span>
+      </div>
+      <div id="key-hints">
+        <div class="key-hint"><span class="key">Left Click</span> Fire</div>
+        <div class="key-hint"><span class="key">Right Click</span> Scope</div>
+        <div class="key-hint"><span class="key">R</span> Reload</div>
       </div>
     </div>
 
