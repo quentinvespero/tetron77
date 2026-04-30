@@ -12,6 +12,7 @@ import { ChunkManager } from '@world/ChunkManager'
 import { showSessionScreen } from '@ui/SessionScreen'
 import { HUD } from '@ui/HUD'
 import { AmbientMusic } from '@audio/AmbientMusic'
+import { AtmosphericParticles } from '@rendering/AtmosphericParticles'
 
 async function main(): Promise<void> {
     // 1. Rapier WASM must initialise before anything else
@@ -57,6 +58,7 @@ async function main(): Promise<void> {
     })
     loop.register(physics)
     loop.register(controller)
+    loop.register(new AtmosphericParticles(sceneManager.scene, cameraRig.camera))
     loop.register({
         update: (dt) => {
             hud.update(playerState.hp, playerState.maxHp)
