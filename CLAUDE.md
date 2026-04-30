@@ -45,19 +45,19 @@ All generated geometry and materials should default to dark, low-saturation valu
 
 ### Terrain
 - Elevation is driven by **FBM (fractal brownian motion) noise** sampled in world-space — no heightmap PNG
-- `src/world/TerrainSampler.ts` is the single source of truth: exports `sample(worldX, worldZ, zone)` and `TERRAIN_SEGS = 16`
+- `src/world/TerrainSampler.ts` is the single source of truth: exports `sample(worldX, worldZ, zone)` and `TERRAIN_SEGS = 32`
 - Zone type controls noise amplitude — each generator passes its own `ZoneType` to `sample()`
 
 | Zone | Amplitude | Base Y | Feel |
 |---|---|---|---|
 | Plains | 6 | -1 | gentle rolling hills |
-| Mountains | 28 | 4 | dramatic tall peaks |
+| Mountains | 32 | 2 | jagged dramatic peaks (ridged FBM, 6 octaves) |
 | CityRuins | 3 | 0 | mostly flat, slight undulation |
 | Encounter | 2 | 0 | open flat area |
 | POI | 2 | 0 | flat for landmark visibility |
 | Water | 0 | -2 | forced flat at sea level |
 
-- All terrain meshes use `PlaneGeometry(CHUNK_SIZE, CHUNK_SIZE, 16, 16)` with per-vertex Y displacement
+- All terrain meshes use `PlaneGeometry(CHUNK_SIZE, CHUNK_SIZE, 32, 32)` with per-vertex Y displacement
 - Ground physics use Rapier **heightfield colliders** (not flat cuboids) — must match the visual mesh exactly
 - Noise is sampled in world-space, so adjacent chunks of the same zone type have seamless borders automatically
 - Objects (rocks, buildings, debris, towers) sample `sample()` at their XZ position to sit on the terrain surface

@@ -11,8 +11,8 @@ export class SceneManager {
     constructor() {
         this.scene = new THREE.Scene()
 
-        // Exponential fog — fades into near-black at ~3 chunks distance
-        this.scene.fog = new THREE.FogExp2(PALETTE.fog, 0.025)
+        // Exponential fog — reveals ~5 chunks before fading into darkness
+        this.scene.fog = new THREE.FogExp2(PALETTE.fog, 0.016)
 
         this.renderer = new THREE.WebGLRenderer({ antialias: true })
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
@@ -32,7 +32,7 @@ export class SceneManager {
         this.scene.add(hemi)
 
         // Directional sun: angled from above-left, casts shadows
-        const sun = new THREE.DirectionalLight(PALETTE.sunlight, 2.5)
+        const sun = new THREE.DirectionalLight(PALETTE.sunlight, 3.2)
         sun.position.set(50, 80, 30)
         sun.castShadow = true
         sun.shadow.camera.near = 0.5

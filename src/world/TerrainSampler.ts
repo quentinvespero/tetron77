@@ -2,8 +2,8 @@ import { ZoneType } from './ZoneType'
 import type { MapParser } from './MapParser'
 import { CHUNK_SIZE } from './constants'
 
-// Terrain mesh subdivision per chunk — 16×16 cells = 289 vertices, 512 triangles
-export const TERRAIN_SEGS = 16
+// Terrain mesh subdivision per chunk — 32×32 cells = 1089 vertices, 2048 triangles, 1089 physics heightfield samples
+export const TERRAIN_SEGS = 32
 
 // World units over which terrain heights blend when crossing a zone boundary
 const BLEND_RADIUS = 6
@@ -31,11 +31,24 @@ const valueNoise = (x: number, z: number): number => {
     )
 }
 
-// FBM — 4 octaves stacked at halving amplitude and doubling frequency
-const fbm = (wx: number, wz: number): number => {
+// FBM — configurable octaves, halving amplitude and doubling frequency each step
+const fbm = (wx: number, wz: number, octaves: number): number => {
     let v = 0, amp = 0.5, freq = 1
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < octaves; i++) {
         v    += valueNoise(wx * freq, wz * freq) * amp
+        amp  *= 0.5
+        freq *= 2
+    }
+    return v  // ~0..1 range
+}
+
+// Ridged FBM — inverts the noise to create sharp crests instead of rounded hills
+const ridgedFbm = (wx: number, wz: number, octaves: number): number => {
+    let v = 0, amp = 0.5, freq = 1
+    for (let i = 0; i < octaves; i++) {
+        // Remap 0..1 noise to a ridge shape: 0 at extremes, 1 at midpoint
+        const n = 1 - Math.abs(valueNoise(wx * freq, wz * freq) * 2 - 1)
+        v    += n * amp
         amp  *= 0.5
         freq *= 2
     }
@@ -48,22 +61,27 @@ interface ZoneConfig {
     amplitude: number  // world-unit height range above baseY
     baseY:     number  // minimum elevation for this zone
     frequency: number  // noise cycles per world unit (lower = broader hills)
+    octaves:   number  // FBM octave count — more = finer detail
+    ridged:    boolean // if true, uses ridged FBM for sharp mountain crests
 }
 
 const ZONE_CONFIG: Record<ZoneType, ZoneConfig> = {
-    [ZoneType.Plains]:    { amplitude: 6,  baseY: -1, frequency: 0.008 },
-    [ZoneType.Mountains]: { amplitude: 28, baseY:  4, frequency: 0.012 },
-    [ZoneType.CityRuins]: { amplitude: 3,  baseY:  0, frequency: 0.008 },
-    [ZoneType.Encounter]: { amplitude: 2,  baseY:  0, frequency: 0.008 },
-    [ZoneType.POI]:       { amplitude: 2,  baseY:  0, frequency: 0.006 },
-    [ZoneType.Water]:     { amplitude: 0,  baseY: -2, frequency: 0     },
+    [ZoneType.Plains]:    { amplitude: 6,  baseY: -1, frequency: 0.008, octaves: 4, ridged: false },
+    [ZoneType.Mountains]: { amplitude: 32, baseY:  2, frequency: 0.010, octaves: 6, ridged: true  },
+    [ZoneType.CityRuins]: { amplitude: 3,  baseY:  0, frequency: 0.008, octaves: 4, ridged: false },
+    [ZoneType.Encounter]: { amplitude: 2,  baseY:  0, frequency: 0.008, octaves: 4, ridged: false },
+    [ZoneType.POI]:       { amplitude: 2,  baseY:  0, frequency: 0.006, octaves: 4, ridged: false },
+    [ZoneType.Water]:     { amplitude: 0,  baseY: -2, frequency: 0,     octaves: 4, ridged: false },
 }
 
 /** Returns the terrain height (world Y) at a given world XZ position for a fixed zone type. */
 export const sample = (worldX: number, worldZ: number, zone: ZoneType): number => {
-    const { amplitude, baseY, frequency } = ZONE_CONFIG[zone]
+    const { amplitude, baseY, frequency, octaves, ridged } = ZONE_CONFIG[zone]
     if (amplitude === 0) return baseY
-    return baseY + fbm(worldX * frequency, worldZ * frequency) * amplitude
+    const nv = ridged
+        ? ridgedFbm(worldX * frequency, worldZ * frequency, octaves)
+        : fbm(worldX * frequency, worldZ * frequency, octaves)
+    return baseY + nv * amplitude
 }
 
 /**

@@ -5,7 +5,7 @@ import type { ChunkCoord } from '../ChunkCoord'
 import type { MapParser } from '../MapParser'
 import { CHUNK_SIZE } from '../constants'
 import { TERRAIN_SEGS, buildChunkHeights } from '../TerrainSampler'
-import { MAT_GROUND } from '@rendering/materials'
+import { MAT_GROUND_VC, applyTerrainVertexColors } from '@rendering/materials'
 
 export class PlainGenerator implements BaseGenerator {
     generate(coord: ChunkCoord, mapParser: MapParser): GeneratedContent {
@@ -21,8 +21,9 @@ export class PlainGenerator implements BaseGenerator {
         for (let i = 0; i < pos.count; i++) pos.setY(i, heights[i]!)
         pos.needsUpdate = true
         geometry.computeVertexNormals()
+        applyTerrainVertexColors(geometry)
 
-        const mesh = new THREE.Mesh(geometry, MAT_GROUND)
+        const mesh = new THREE.Mesh(geometry, MAT_GROUND_VC)
         mesh.position.set(centerX, 0, centerZ)
         mesh.receiveShadow = true
 
