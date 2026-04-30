@@ -57,6 +57,10 @@ All generated geometry and materials should default to dark, low-saturation valu
 - Physics integration: Rapier handles collisions and gravity, separate from Three.js scene
 - Player controller: first-person, username entry, health, weapon slots, respawn at last safe location
 
+### Post-Processing
+Pipeline: `RenderPass → ColorGradePass → FilmGrainPass` via Three.js `EffectComposer` (`src/rendering/PostProcessor.ts`).
+Visual knobs are the shader uniforms in `src/rendering/shaders/` — `saturation`, `contrast`, `vignetteStrength` (ColorGrade) and `intensity` (FilmGrain).
+
 ### UI
 Intentionally minimal — only health bar and compass (compass shows nearby unexplored POIs as player rotates).
 

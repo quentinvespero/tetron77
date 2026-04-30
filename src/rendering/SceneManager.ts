@@ -1,11 +1,13 @@
 import * as THREE from 'three'
 import { PALETTE } from './materials'
+import { PostProcessor } from './PostProcessor'
 
 export class SceneManager {
     readonly scene: THREE.Scene
     readonly renderer: THREE.WebGLRenderer
 
     private resizeCallbacks: Array<() => void> = []
+    private postProcessor: PostProcessor | null = null
 
     constructor() {
         this.scene = new THREE.Scene()
@@ -51,8 +53,20 @@ export class SceneManager {
         window.addEventListener('resize', this.handleResize)
     }
 
-    render(camera: THREE.Camera): void {
-        this.renderer.render(this.scene, camera)
+    initPostProcessing(camera: THREE.Camera): void {
+        this.postProcessor = new PostProcessor(this.renderer, this.scene, camera)
+        this.postProcessor.setSize(window.innerWidth, window.innerHeight)
+        this.resizeCallbacks.push(() =>
+            this.postProcessor!.setSize(window.innerWidth, window.innerHeight)
+        )
+    }
+
+    render(camera: THREE.Camera, dt: number): void {
+        if (this.postProcessor) {
+            this.postProcessor.render(dt)
+        } else {
+            this.renderer.render(this.scene, camera)
+        }
     }
 
     onResize(callback: () => void): void {

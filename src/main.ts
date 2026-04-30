@@ -23,6 +23,7 @@ async function main(): Promise<void> {
     const physics      = new PhysicsWorld()
     const sceneManager = new SceneManager()
     const cameraRig    = new CameraRig(sceneManager)
+    sceneManager.initPostProcessing(cameraRig.camera)
 
     // 3. Wait for map and username entry concurrently
     const [mapParser, username] = await Promise.all([mapLoadPromise, usernamePromise])
@@ -53,9 +54,9 @@ async function main(): Promise<void> {
         update: () => chunkManager.update(player.position),
     })
     loop.register({
-        update: () => {
+        update: (dt: number) => {
             hud.update(playerState.hp, playerState.maxHp)
-            sceneManager.render(cameraRig.camera)
+            sceneManager.render(cameraRig.camera, dt)
         },
     })
 
