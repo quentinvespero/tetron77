@@ -1,12 +1,19 @@
 import * as THREE from 'three'
 import type { WeaponDef } from './WeaponDefinitions'
 import { WeaponViewModel, BARREL_TIP_LOCAL } from './WeaponViewModel'
+import type { CameraRig } from '@rendering/CameraRig'
 import type { InputManager } from '@player/InputManager'
 import type { HUD } from '@ui/HUD'
+
+interface Effect {
+    ttl: number
+    remove: () => void
+}
 
 export class WeaponSystem {
     private readonly viewModel: WeaponViewModel
     private readonly raycaster = new THREE.Raycaster()
+    private readonly effects: Effect[] = []
 
     private ammoInMag: number
     private isReloading = false
@@ -16,18 +23,27 @@ export class WeaponSystem {
 
     constructor(
         private readonly def: WeaponDef,
-        private readonly camera: THREE.PerspectiveCamera,
+        private readonly cameraRig: CameraRig,
         private readonly scene: THREE.Scene,
         private readonly input: InputManager,
         private readonly hud: HUD,
     ) {
         this.ammoInMag = def.magazineSize
-        this.viewModel = new WeaponViewModel(camera)
-        hud.setAmmo(this.ammoInMag, def.magazineSize)
+        this.viewModel = new WeaponViewModel(cameraRig.camera)
+        hud.setAmmo(this.ammoInMag)
     }
 
     update(dt: number): void {
         this.fireCooldown = Math.max(0, this.fireCooldown - dt)
+
+        // Tick down and clean up transient visual effects
+        for (let i = this.effects.length - 1; i >= 0; i--) {
+            this.effects[i]!.ttl -= dt
+            if (this.effects[i]!.ttl <= 0) {
+                this.effects[i]!.remove()
+                this.effects.splice(i, 1)
+            }
+        }
 
         if (this.isReloading) {
             this.reloadTimer -= dt
@@ -35,7 +51,7 @@ export class WeaponSystem {
                 this.ammoInMag = this.def.magazineSize
                 this.isReloading = false
                 this.hud.setReloading(false)
-                this.hud.setAmmo(this.ammoInMag, this.def.magazineSize)
+                this.hud.setAmmo(this.ammoInMag)
             }
         }
 
@@ -47,8 +63,7 @@ export class WeaponSystem {
         const wantsScope = this.input.isMouseDown(2)
         if (wantsScope !== this.isScoped) {
             this.isScoped = wantsScope
-            this.camera.fov = wantsScope ? this.def.scopeFov : this.def.defaultFov
-            this.camera.updateProjectionMatrix()
+            this.cameraRig.setFov(wantsScope ? this.def.scopeFov : this.def.defaultFov)
             this.hud.setScoped(wantsScope)
         }
 
@@ -66,8 +81,6 @@ export class WeaponSystem {
         if (this.ammoInMag === 0 && !this.isReloading) {
             this.startReload()
         }
-
-        this.hud.setAmmo(this.ammoInMag, this.def.magazineSize)
     }
 
     private tryFire(): void {
@@ -82,9 +95,9 @@ export class WeaponSystem {
             (Math.random() - 0.5) * spread,
             (Math.random() - 0.5) * spread,
             -1,
-        ).normalize().applyEuler(this.camera.rotation)
+        ).normalize().applyEuler(this.cameraRig.camera.rotation)
 
-        this.raycaster.set(this.camera.position, dir)
+        this.raycaster.set(this.cameraRig.camera.position, dir)
         this.raycaster.far = this.def.range
 
         const hits = this.raycaster.intersectObjects(this.scene.children, true)
@@ -93,7 +106,7 @@ export class WeaponSystem {
         }
 
         this.spawnMuzzleFlash()
-        this.hud.setAmmo(this.ammoInMag, this.def.magazineSize)
+        this.hud.setAmmo(this.ammoInMag)
     }
 
     private startReload(): void {
@@ -111,11 +124,14 @@ export class WeaponSystem {
         const mesh = new THREE.Mesh(new THREE.SphereGeometry(0.06, 4, 4), mat)
         mesh.position.copy(position)
         this.scene.add(mesh)
-        setTimeout(() => {
-            this.scene.remove(mesh)
-            mesh.geometry.dispose()
-            mat.dispose()
-        }, 150)
+        this.effects.push({
+            ttl: 0.15,
+            remove: () => {
+                this.scene.remove(mesh)
+                mesh.geometry.dispose()
+                mat.dispose()
+            },
+        })
     }
 
     private spawnMuzzleFlash(): void {
@@ -130,10 +146,13 @@ export class WeaponSystem {
         mesh.renderOrder = 999
         mesh.position.copy(BARREL_TIP_LOCAL)
         this.viewModel.group.add(mesh)
-        setTimeout(() => {
-            this.viewModel.group.remove(mesh)
-            mesh.geometry.dispose()
-            mat.dispose()
-        }, 80)
+        this.effects.push({
+            ttl: 0.08,
+            remove: () => {
+                this.viewModel.group.remove(mesh)
+                mesh.geometry.dispose()
+                mat.dispose()
+            },
+        })
     }
 }

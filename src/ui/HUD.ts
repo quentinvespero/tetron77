@@ -34,7 +34,7 @@ export class HUD {
         this.healthFill.style.width = `${pct}%`
     }
 
-    setAmmo(current: number, max: number): void {
+    setAmmo(current: number): void {
         if (current === this._lastAmmo) return
         this._lastAmmo = current
         this.ammoBullets.textContent = `${current} / ∞`
