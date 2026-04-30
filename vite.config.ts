@@ -21,6 +21,8 @@ export default defineConfig({
             '@physics':   path.resolve(root, 'src/physics'),
             '@player':    path.resolve(root, 'src/player'),
             '@world':     path.resolve(root, 'src/world'),
+            '@ui':        path.resolve(root, 'src/ui'),
+            '@audio':     path.resolve(root, 'src/audio'),
         },
     },
 })

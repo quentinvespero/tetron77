@@ -6,6 +6,9 @@ export class InputManager {
     isPointerLocked = false
 
     init(): this {
+        // Sync with pointer lock that may have been granted before this init
+        this.isPointerLocked = document.pointerLockElement !== null
+
         document.addEventListener('keydown', (e) => {
             // Only flag as just-pressed on the leading edge (key was up)
             if (!this.keys[e.code]) this.justPressed[e.code] = true

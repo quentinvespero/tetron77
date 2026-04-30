@@ -12,8 +12,8 @@ import { EncounterGenerator } from './generators/EncounterGenerator'
 import { POIGenerator } from './generators/POIGenerator'
 import type { BaseGenerator } from './generators/BaseGenerator'
 
-// World units per chunk side — 1 pixel in map.png = 1 chunk
-export const CHUNK_SIZE    = 32
+import { CHUNK_SIZE } from './constants'
+export { CHUNK_SIZE }
 // Chunks to load around the player (Manhattan distance)
 const VIEW_RADIUS   = 3
 // Chunks outside this radius get unloaded (hysteresis prevents thrashing)
@@ -73,7 +73,7 @@ export class ChunkManager {
         const generator = this.generators[zoneType] ?? new PlainGenerator()
 
         const chunk = new Chunk(coord)
-        chunk.build(this.scene, this.physics, generator)
+        chunk.build(this.scene, this.physics, generator, this.mapParser)
         this.loaded.set(key, chunk)
     }
 

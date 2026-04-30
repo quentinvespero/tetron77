@@ -13,7 +13,9 @@
             "@rendering/*": ["./src/rendering/*"],
             "@physics/*":   ["./src/physics/*"],
             "@player/*":    ["./src/player/*"],
-            "@world/*":     ["./src/world/*"]
+            "@world/*":     ["./src/world/*"],
+            "@ui/*":        ["./src/ui/*"],
+            "@audio/*":     ["./src/audio/*"]
         }
     },
     "include": ["src", "vite.config.ts"]
