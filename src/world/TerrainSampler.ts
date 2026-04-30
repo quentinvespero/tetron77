@@ -66,11 +66,11 @@ interface ZoneConfig {
 }
 
 const ZONE_CONFIG: Record<ZoneType, ZoneConfig> = {
-    [ZoneType.Plains]:    { amplitude: 6,  baseY: -1, frequency: 0.008, octaves: 4, ridged: false },
+    [ZoneType.Plains]:    { amplitude: 17, baseY: -1, frequency: 0.023, octaves: 4, ridged: false },
     [ZoneType.Mountains]: { amplitude: 32, baseY:  2, frequency: 0.010, octaves: 6, ridged: true  },
-    [ZoneType.CityRuins]: { amplitude: 3,  baseY:  0, frequency: 0.008, octaves: 4, ridged: false },
-    [ZoneType.Encounter]: { amplitude: 2,  baseY:  0, frequency: 0.008, octaves: 4, ridged: false },
-    [ZoneType.POI]:       { amplitude: 2,  baseY:  0, frequency: 0.006, octaves: 4, ridged: false },
+    [ZoneType.CityRuins]: { amplitude: 8,  baseY:  0, frequency: 0.016, octaves: 4, ridged: false },
+    [ZoneType.Encounter]: { amplitude: 5,  baseY:  0, frequency: 0.016, octaves: 4, ridged: false },
+    [ZoneType.POI]:       { amplitude: 4,  baseY:  0, frequency: 0.011, octaves: 4, ridged: false },
     [ZoneType.Water]:     { amplitude: 0,  baseY: -2, frequency: 0,     octaves: 4, ridged: false },
 }
 
