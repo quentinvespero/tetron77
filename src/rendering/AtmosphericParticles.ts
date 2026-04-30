@@ -13,13 +13,13 @@ const ASHES = {
 }
 
 const RAIN = {
-    count:   14000,
+    count:   6000,
     speed:   18.0,
     drift:   1.5,
-    size:    0.9,
-    opacity: 0.30,
+    size:    3.5,
+    opacity: 0.5,
     streak:  1.0, // elongated streak shape
-    color:   new THREE.Color(0x445566),
+    color:   new THREE.Color(0x000000),
 }
 
 const ACTIVE_PRESET = RAIN
@@ -30,7 +30,7 @@ const VOL_Y = 40
 const VOL_Z = 80
 
 // Perspective point-size scale: tuned so particles feel correctly sized at typical view distances
-const POINT_SCALE = 80
+const POINT_SCALE = 200
 
 const VERTEX_SHADER = /* glsl */`
     uniform float uTime;
@@ -56,7 +56,7 @@ const VERTEX_SHADER = /* glsl */`
 
         vec4 mvPos = modelViewMatrix * vec4(x, y, z, 1.0);
         gl_Position = projectionMatrix * mvPos;
-        gl_PointSize = clamp(uSize * ${POINT_SCALE.toFixed(1)} / -mvPos.z, 0.5, 8.0);
+        gl_PointSize = clamp(uSize * ${POINT_SCALE.toFixed(1)} / -mvPos.z, 0.5, 64.0);
     }
 `
 
@@ -70,7 +70,7 @@ const FRAGMENT_SHADER = /* glsl */`
         float dr = length(gl_PointCoord - 0.5) * 2.0;
 
         // Streak shape (rain): narrow horizontally, full height
-        float dx = (gl_PointCoord.x - 0.5) * 5.0;
+        float dx = (gl_PointCoord.x - 0.5) * 10.0;
         float dy = (gl_PointCoord.y - 0.5);
         float ds = length(vec2(dx, dy)) * 2.0;
 
