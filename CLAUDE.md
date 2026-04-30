@@ -78,6 +78,7 @@ Built:
 - Terrain system (`TerrainSampler.ts`): FBM noise elevation + Rapier heightfield physics
 - Physics integration (`PhysicsWorld.ts`): Rapier WASM, gravity -20
 - Player controller: first-person movement, username entry, health, fall damage, respawn
+- Ambient music (`AmbientMusic.ts`): looping `.opus` track, starts after login with a 5s volume fade-in
 
 Not yet built:
 - Weapons system

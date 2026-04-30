@@ -11,6 +11,7 @@ import { MapParser } from '@world/MapParser'
 import { ChunkManager } from '@world/ChunkManager'
 import { showSessionScreen } from '@ui/SessionScreen'
 import { HUD } from '@ui/HUD'
+import { AmbientMusic } from '@audio/AmbientMusic'
 
 async function main(): Promise<void> {
     // 1. Rapier WASM must initialise before anything else
@@ -26,6 +27,8 @@ async function main(): Promise<void> {
 
     // 3. Wait for map and username entry concurrently
     const [mapParser, username] = await Promise.all([mapLoadPromise, usernamePromise])
+
+    new AmbientMusic().start()
 
     // 4. Chunk manager + player (map must be loaded first)
     const chunkManager = new ChunkManager(mapParser, sceneManager.scene, physics)
