@@ -56,7 +56,7 @@ async function main(): Promise<void> {
 
     // 9. Weapon system — registered before controller so it reads mouse state
     //    before controller's flushJustPressed() clears it
-    const weaponSystem = new WeaponSystem(RIFLE, cameraRig, sceneManager.scene, input, hud)
+    const weaponSystem = new WeaponSystem(RIFLE, cameraRig, sceneManager.scene, input, hud, (delta) => controller.addRecoilPitch(delta))
 
     // 10. Game loop — chunk streaming runs first so terrain colliders exist
     //     before physics steps and before the KCC queries them for movement

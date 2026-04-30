@@ -8,6 +8,7 @@ export interface WeaponDef {
     defaultFov: number    // normal field of view
     scopeFov: number      // field of view when scoped in
     spread: number        // radians of random cone spread when hip-firing
+    cameraRecoil: number  // upward pitch kick per shot (radians)
 }
 
 export const RIFLE: WeaponDef = {
@@ -20,4 +21,5 @@ export const RIFLE: WeaponDef = {
     defaultFov: 65,
     scopeFov: 28,
     spread: 0.003,
+    cameraRecoil: 0.014,
 }

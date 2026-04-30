@@ -4,6 +4,7 @@ import { WeaponViewModel, BARREL_TIP_LOCAL } from './WeaponViewModel'
 import type { CameraRig } from '@rendering/CameraRig'
 import type { InputManager } from '@player/InputManager'
 import type { HUD } from '@ui/HUD'
+import { WeaponSounds } from '@audio/WeaponSounds'
 
 interface Effect {
     ttl: number
@@ -14,6 +15,7 @@ export class WeaponSystem {
     private readonly viewModel: WeaponViewModel
     private readonly raycaster = new THREE.Raycaster()
     private readonly effects: Effect[] = []
+    private readonly sounds = new WeaponSounds()
 
     private ammoInMag: number
     private isReloading = false
@@ -28,10 +30,12 @@ export class WeaponSystem {
         private readonly scene: THREE.Scene,
         private readonly input: InputManager,
         private readonly hud: HUD,
+        private readonly onCameraRecoil: (delta: number) => void,
     ) {
         this.ammoInMag = def.magazineSize
         this.viewModel = new WeaponViewModel(cameraRig.camera)
         hud.setAmmo(this.ammoInMag)
+        this.sounds.load().catch(console.error)
     }
 
     update(dt: number): void {
@@ -111,6 +115,9 @@ export class WeaponSystem {
             this.spawnHitSpark(hits[0].point)
         }
 
+        this.viewModel.applyRecoil()
+        this.onCameraRecoil(-this.def.cameraRecoil)
+        this.sounds.playShot()
         this.spawnMuzzleFlash()
         this.hud.setAmmo(this.ammoInMag)
     }

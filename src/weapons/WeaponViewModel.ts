@@ -38,6 +38,9 @@ export class WeaponViewModel {
     private time = 0
     private lagX = 0
     private lagY = 0
+    private recoilKickY = 0
+    private recoilKickZ = 0
+    private recoilRotX  = 0
 
     constructor(camera: THREE.PerspectiveCamera) {
         this.group = new THREE.Group()
@@ -219,6 +222,12 @@ export class WeaponViewModel {
         camera.add(this.group)
     }
 
+    applyRecoil(): void {
+        this.recoilKickY += 0.012
+        this.recoilKickZ += 0.022
+        this.recoilRotX  -= 0.12
+    }
+
     update(dt: number, deltaYaw = 0, deltaPitch = 0): void {
         this.time += dt
 
@@ -241,8 +250,16 @@ export class WeaponViewModel {
         this.lagX *= decay
         this.lagY *= decay
 
+        const RECOIL_RETURN = 14
+        const recoilDecay = 1 - Math.min(1, RECOIL_RETURN * dt)
+        this.recoilKickY *= recoilDecay
+        this.recoilKickZ *= recoilDecay
+        this.recoilRotX  *= recoilDecay
+
         this.group.position.x = GROUP_X + Math.sin(this.time * 0.8) * 0.001 + this.lagX
-        this.group.position.y = GROUP_Y + Math.sin(this.time * 1.4) * 0.003 + this.lagY
+        this.group.position.y = GROUP_Y + Math.sin(this.time * 1.4) * 0.003 + this.lagY + this.recoilKickY
+        this.group.position.z = GROUP_Z + this.recoilKickZ
+        this.group.rotation.x = this.recoilRotX
         this.group.rotation.z = -this.lagX * 4
     }
 }
