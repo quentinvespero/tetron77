@@ -2,11 +2,11 @@ import * as THREE from 'three'
 
 // B&W palette — shared across all generators and entities
 export const PALETTE = {
-    ground:     0x222222,
-    groundAlt:  0x2e2e2e,
-    rock:       0x1a1a1a,
-    ruin:       0x2a2a2a,
-    water:      0x0d0d0d,
+    ground:     0x3a3a3a,
+    groundAlt:  0x484848,
+    rock:       0x2e2e2e,
+    ruin:       0x444444,
+    water:      0x151515,
     fog:        0x0a0a0a,
     ambient:    0xffffff,
     sunlight:   0xaac4d8, // pale cold blue-silver — moonlight, not sunlight
@@ -42,8 +42,8 @@ export const MAT_WATER = new THREE.MeshStandardMaterial({
 })
 
 // Colors used for height-based terrain gradient
-const TERRAIN_LOW  = new THREE.Color(0x171717)  // dark at base elevation
-const TERRAIN_HIGH = new THREE.Color(0x3a3a44)  // cool gray-blue at peaks
+const TERRAIN_LOW  = new THREE.Color(0x2a2a2a)  // dark at base elevation
+const TERRAIN_HIGH = new THREE.Color(0x555560)  // cool gray-blue at peaks
 
 // Absolute world-space Y range — must match TerrainSampler ZONE_CONFIG:
 //   WORLD_Y_MIN = Water baseY (-2), WORLD_Y_MAX = Mountains baseY + amplitude (2 + 32 = 34)
