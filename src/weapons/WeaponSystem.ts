@@ -12,6 +12,9 @@ interface Effect {
 }
 
 export class WeaponSystem {
+    // Read by EnemyManager each frame after update() — reset to null at frame start
+    lastHit: { object: THREE.Object3D; point: THREE.Vector3; damage: number } | null = null
+
     private readonly viewModel: WeaponViewModel
     private readonly raycaster = new THREE.Raycaster()
     private readonly effects: Effect[] = []
@@ -39,6 +42,7 @@ export class WeaponSystem {
     }
 
     update(dt: number): void {
+        this.lastHit = null
         this.fireCooldown = Math.max(0, this.fireCooldown - dt)
 
         // Tick down and clean up transient visual effects
@@ -112,6 +116,7 @@ export class WeaponSystem {
 
         const hits = this.raycaster.intersectObjects(this.scene.children, true)
         if (hits.length > 0 && hits[0]) {
+            this.lastHit = { object: hits[0].object, point: hits[0].point, damage: this.def.damage }
             this.spawnHitSpark(hits[0].point)
         }
 

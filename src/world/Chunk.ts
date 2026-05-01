@@ -4,12 +4,14 @@ import type { ChunkCoord } from './ChunkCoord'
 import type { PhysicsWorld } from '@physics/PhysicsWorld'
 import type { BaseGenerator } from './generators/BaseGenerator'
 import type { MapParser } from './MapParser'
+import type { EnemyEntity } from '@enemies/EnemyEntity'
 
 export class Chunk {
     readonly coord: ChunkCoord
     private meshes:              THREE.Mesh[]       = []
     private bodies:              RAPIER.RigidBody[] = []
     private disposableMaterials: THREE.Material[]   = []
+    private enemies:             EnemyEntity[]      = []
 
     constructor(coord: ChunkCoord) {
         this.coord = coord
@@ -37,6 +39,19 @@ export class Chunk {
         this.disposableMaterials = disposableMaterials
     }
 
+    spawnEnemies(enemies: EnemyEntity[]): void {
+        if (this.enemies.length > 0) throw new Error('spawnEnemies called twice on the same chunk')
+        this.enemies = enemies
+    }
+
+    getEnemies(): ReadonlyArray<EnemyEntity> {
+        return this.enemies
+    }
+
+    purgeDeadEnemies(): void {
+        this.enemies = this.enemies.filter(e => !e.isFullyDead)
+    }
+
     /**
      * Fully disposes this chunk — removes from scene, frees GPU memory,
      * and removes Rapier bodies. Must be called before discarding the chunk.
@@ -56,5 +71,10 @@ export class Chunk {
             physics.removeRigidBody(body)
         }
         this.bodies = []
+
+        for (const enemy of this.enemies) {
+            enemy.removeFromScene(scene)
+        }
+        this.enemies = []
     }
 }

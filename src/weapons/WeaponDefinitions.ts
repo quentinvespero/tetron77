@@ -9,6 +9,7 @@ export interface WeaponDef {
     scopeFov: number      // field of view when scoped in
     spread: number        // radians of random cone spread when hip-firing
     cameraRecoil: number  // upward pitch kick per shot (radians)
+    damage: number        // HP removed per hit
 }
 
 export const RIFLE: WeaponDef = {
@@ -22,4 +23,5 @@ export const RIFLE: WeaponDef = {
     scopeFov: 28,
     spread: 0.003,
     cameraRecoil: 0.014,
+    damage: 25,
 }

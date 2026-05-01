@@ -24,6 +24,7 @@ export default defineConfig({
             '@ui':        path.resolve(root, 'src/ui'),
             '@audio':     path.resolve(root, 'src/audio'),
             '@weapons':   path.resolve(root, 'src/weapons'),
+            '@enemies':   path.resolve(root, 'src/enemies'),
         },
     },
 })
