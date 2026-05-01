@@ -13,11 +13,11 @@ const ASHES = {
 }
 
 const RAIN = {
-    count:   6000,
-    speed:   18.0,
+    count:   10000,
+    speed:   38.0,
     drift:   1.5,
-    size:    3.5,
-    opacity: 0.5,
+    size:    5.5,
+    opacity: 0.9,
     streak:  1.0, // elongated streak shape
     color:   new THREE.Color(0x000000),
 }
