@@ -23,6 +23,12 @@ const FALL_DAMAGE_SCALE     = 5
 // a surface is holding us up (guards against floating-point noise near zero)
 const TERRAIN_SUPPORT_EPSILON = 0.005
 
+// Water interaction — body Y on water surface ≈ -1.14; on land boundary ≈ -0.65
+// Threshold -1.0 cleanly separates "in water" from "on adjacent land"
+const IN_WATER_BODY_Y   = -1.0  // player body Y below this → in water
+const WATER_GRAVITY_MUL = 0.3   // buoyancy: gravity reduced 70% when in water
+const WATER_JUMP_SPEED  = 5.0   // upward impulse when in water and not grounded
+
 export class PlayerController {
     private yaw         = 0
     private pitch       = 0
@@ -76,12 +82,20 @@ export class PlayerController {
         // Capture vertical speed before this frame's gravity so fall damage sees impact speed
         const prevYVel = this._yVel
 
-        // Accumulate gravity — zeroed on landing below
-        this._yVel -= GRAVITY * dt
+        // Water detection: body Y from previous frame (committed by Rapier after last step)
+        const pos0    = this.player.body.translation()
+        const inWater = pos0.y < IN_WATER_BODY_Y
 
-        // Jump
-        if (this.input.isJustPressed('Space') && this._isGrounded) {
-            this._yVel = JUMP_SPEED
+        // Accumulate gravity — buoyancy reduces it when in water
+        this._yVel -= GRAVITY * (inWater ? WATER_GRAVITY_MUL : 1.0) * dt
+
+        // Jump: normal when grounded; Space also escapes water when not grounded
+        if (this.input.isJustPressed('Space')) {
+            if (this._isGrounded) {
+                this._yVel = JUMP_SPEED       // normal jump from land or water surface
+            } else if (inWater) {
+                this._yVel = WATER_JUMP_SPEED // float up to surface if fallen through seam
+            }
         }
 
         // Horizontal direction from WASD in camera-yaw space
@@ -92,6 +106,7 @@ export class PlayerController {
         if (this._moveDir.lengthSq() > 0) {
             this._moveDir.normalize()
             this._moveDir.applyAxisAngle(PlayerController._Y_AXIS, this.yaw)
+            if (inWater) this._moveDir.multiplyScalar(0.55)  // wading: ~4.4 m/s vs 8 m/s on land
         }
 
         // Desired displacement for this frame
@@ -147,5 +162,9 @@ export class PlayerController {
 
     get isGrounded(): boolean {
         return this._isGrounded
+    }
+
+    get facingYaw(): number {
+        return this.yaw
     }
 }

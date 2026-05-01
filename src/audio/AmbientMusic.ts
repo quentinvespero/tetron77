@@ -8,7 +8,7 @@ export class AmbientMusic {
     }
 
     // Call after a user gesture — fades volume from 0 to targetVolume over fadeDurationMs
-    start(targetVolume = 0.9, fadeDurationMs = 5000) {
+    start(targetVolume = 1, fadeDurationMs = 5000) {
         this.audio.play().catch(console.warn)
 
         const startTime = performance.now()

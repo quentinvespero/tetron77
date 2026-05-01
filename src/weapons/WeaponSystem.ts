@@ -122,7 +122,7 @@ export class WeaponSystem {
 
         this.viewModel.applyRecoil()
         this.onCameraRecoil(-this.def.cameraRecoil)
-        this.sounds.playShot()
+        this.sounds.playShot(0.5)
         this.spawnMuzzleFlash()
         this.hud.setAmmo(this.ammoInMag)
     }

@@ -23,13 +23,13 @@ export class SceneManager {
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
         // LinearToneMapping keeps the B&W palette from being crushed by ACES
         this.renderer.toneMapping = THREE.LinearToneMapping
-        this.renderer.toneMappingExposure = 1.0
+        this.renderer.toneMappingExposure = 1.8
 
         // Hemisphere light: cold overcast sky fill — no harsh directionality
         const hemi = new THREE.HemisphereLight(
             0x556677, // sky: cooler blue-gray, moonlit overcast
             0x111111, // ground bounce: very dark
-            2.2       // needs to be high — base materials are very dark (0x222222)
+            4.0       // needs to be high — base materials are very dark (0x222222)
         )
         this.scene.add(hemi)
 

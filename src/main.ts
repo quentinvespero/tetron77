@@ -11,6 +11,8 @@ import { MapParser } from '@world/MapParser'
 import { ChunkManager } from '@world/ChunkManager'
 import { showSessionScreen } from '@ui/SessionScreen'
 import { HUD } from '@ui/HUD'
+import { Compass } from '@ui/Compass'
+import { POIRegistry } from '@world/POIRegistry'
 import { AmbientMusic } from '@audio/AmbientMusic'
 import { AtmosphericParticles } from '@rendering/AtmosphericParticles'
 import { WeaponSystem } from '@weapons/WeaponSystem'
@@ -46,6 +48,7 @@ async function main(): Promise<void> {
     // 6. Game state + HUD
     const playerState = new PlayerState(username, player.startPosition)
     const hud         = new HUD()
+    const compass     = new Compass()
     hud.update(playerState.hp, playerState.maxHp)
 
     // 7. Player controller wired to state + HUD
@@ -82,6 +85,7 @@ async function main(): Promise<void> {
     loop.register({
         update: (dt) => {
             hud.update(playerState.hp, playerState.maxHp)
+            compass.update(controller.facingYaw, player.position.x, player.position.z, POIRegistry.getAll())
             sceneManager.render(cameraRig.camera, dt)
         },
     })

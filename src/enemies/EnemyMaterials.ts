@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { applyGrainShader } from '@rendering/materials'
 
 // Shared singletons — never disposed
 export const MAT_ENEMY_BODY = new THREE.MeshStandardMaterial({
@@ -6,12 +7,14 @@ export const MAT_ENEMY_BODY = new THREE.MeshStandardMaterial({
     roughness: 0.6,
     metalness: 0.5,
 })
+applyGrainShader(MAT_ENEMY_BODY, 0.18, 13.0)
 
 export const MAT_ENEMY_JOINT = new THREE.MeshStandardMaterial({
     color: 0x1a1a1a,
     roughness: 0.85,
     metalness: 0.2,
 })
+applyGrainShader(MAT_ENEMY_JOINT, 0.18, 13.0)
 
 // Per-enemy clone for hit-flash effect
 export const makeSensorMat = (): THREE.MeshStandardMaterial =>
