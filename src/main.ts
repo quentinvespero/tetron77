@@ -22,7 +22,7 @@ async function main(): Promise<void> {
     await RAPIER.init()
 
     // 2. Core systems — initialise in parallel with the session screen
-    const mapLoadPromise    = MapParser.load('/map.png')
+    const mapLoadPromise    = MapParser.load(`${import.meta.env.BASE_URL}map.png`)
     const usernamePromise   = showSessionScreen()
 
     const physics      = new PhysicsWorld()

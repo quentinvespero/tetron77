@@ -7,7 +7,7 @@ export class WeaponSounds {
     // Only fetches — AudioContext is created lazily on first playShot() call
     // (browsers require a user gesture before AudioContext can run)
     async load(): Promise<void> {
-        const res = await fetch('/shot_gun2.opus')
+        const res = await fetch(`${import.meta.env.BASE_URL}shot_gun2.opus`)
         this.rawBuffer = await res.arrayBuffer()
     }
 
