@@ -22,7 +22,7 @@ const RAIN = {
     color:   new THREE.Color(0x000000),
 }
 
-const ACTIVE_PRESET = RAIN
+const ACTIVE_PRESET = ASHES
 
 // Particle volume (world units) centered on the camera
 const VOL_X = 80
@@ -41,18 +41,26 @@ const VERTEX_SHADER = /* glsl */`
 
     attribute vec3 aOffset;
 
+    varying float vEdgeFade;
+
     void main() {
-        // Horizontal position: distribute across the volume centered on camera
-        float x = uCamPos.x + aOffset.x * ${VOL_X.toFixed(1)} - ${(VOL_X / 2).toFixed(1)};
-        float z = uCamPos.z + aOffset.z * ${VOL_Z.toFixed(1)} - ${(VOL_Z / 2).toFixed(1)};
+        // World-space tiled positioning: each particle has a stable world anchor.
+        // mod() wraps the particle to the opposite edge of the volume when it leaves,
+        // so the player moves *through* the cloud rather than dragging it along.
+        float x = mod(aOffset.x * ${VOL_X.toFixed(1)} - uCamPos.x + ${(VOL_X / 2).toFixed(1)}, ${VOL_X.toFixed(1)}) + uCamPos.x - ${(VOL_X / 2).toFixed(1)};
+        float z = mod(aOffset.z * ${VOL_Z.toFixed(1)} - uCamPos.z + ${(VOL_Z / 2).toFixed(1)}, ${VOL_Z.toFixed(1)}) + uCamPos.z - ${(VOL_Z / 2).toFixed(1)};
 
-        // Vertical: each particle falls from its slot, wraps at bottom of volume
+        // Vertical: falls in world space, tiled the same way
         float fallY = mod(aOffset.y * ${VOL_Y.toFixed(1)} - uTime * uSpeed, ${VOL_Y.toFixed(1)});
-        float y = uCamPos.y + fallY - ${(VOL_Y / 2).toFixed(1)};
+        float y = mod(fallY - uCamPos.y + ${(VOL_Y / 2).toFixed(1)}, ${VOL_Y.toFixed(1)}) + uCamPos.y - ${(VOL_Y / 2).toFixed(1)};
 
-        // Slow organic sway: ash drifting in dead wind
+        // Slow organic sway applied after tiling (local world-space offset)
         x += uDrift * sin(uTime * 0.3 + aOffset.z * 6.2832);
         z += uDrift * 0.4 * cos(uTime * 0.2 + aOffset.x * 6.2832);
+
+        // Fade particles near horizontal volume edges to hide wrap seam
+        vec2 delta = vec2(x - uCamPos.x, z - uCamPos.z) / vec2(${(VOL_X / 2).toFixed(1)}, ${(VOL_Z / 2).toFixed(1)});
+        vEdgeFade = 1.0 - smoothstep(0.75, 1.0, max(abs(delta.x), abs(delta.y)));
 
         vec4 mvPos = modelViewMatrix * vec4(x, y, z, 1.0);
         gl_Position = projectionMatrix * mvPos;
@@ -65,6 +73,8 @@ const FRAGMENT_SHADER = /* glsl */`
     uniform float uStreak;
     uniform vec3  uColor;
 
+    varying float vEdgeFade;
+
     void main() {
         // Round shape (ashes): soft circular fade
         float dr = length(gl_PointCoord - 0.5) * 2.0;
@@ -76,7 +86,7 @@ const FRAGMENT_SHADER = /* glsl */`
 
         float d = mix(dr, ds, uStreak);
         if (d > 1.0) discard;
-        float alpha = uOpacity * (1.0 - d * d);
+        float alpha = uOpacity * (1.0 - d * d) * vEdgeFade;
         gl_FragColor = vec4(uColor, alpha);
     }
 `
