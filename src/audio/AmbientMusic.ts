@@ -2,7 +2,7 @@ export class AmbientMusic {
     private audio: HTMLAudioElement
 
     constructor() {
-        this.audio = new Audio('/ambient_music.opus')
+        this.audio = new Audio(`${import.meta.env.BASE_URL}ambient_music.opus`)
         this.audio.loop = true
         this.audio.volume = 0
     }
