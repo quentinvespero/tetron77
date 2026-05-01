@@ -4,7 +4,7 @@ import path from 'path'
 const root = import.meta.dirname
 
 export default defineConfig({
-    base: './',
+    base: '/tetron77/',
     assetsInclude: ['**/*.png'],
     optimizeDeps: {
         // Rapier ships its own WASM — Vite must not pre-bundle it
@@ -23,6 +23,8 @@ export default defineConfig({
             '@world':     path.resolve(root, 'src/world'),
             '@ui':        path.resolve(root, 'src/ui'),
             '@audio':     path.resolve(root, 'src/audio'),
+            '@weapons':   path.resolve(root, 'src/weapons'),
+            '@enemies':   path.resolve(root, 'src/enemies'),
         },
     },
 })

@@ -11,6 +11,7 @@ import { CityRuinsGenerator } from './generators/CityRuinsGenerator'
 import { EncounterGenerator } from './generators/EncounterGenerator'
 import { POIGenerator } from './generators/POIGenerator'
 import type { BaseGenerator } from './generators/BaseGenerator'
+import type { EnemyManager } from '@enemies/EnemyManager'
 
 import { CHUNK_SIZE } from './constants'
 export { CHUNK_SIZE }
@@ -28,6 +29,7 @@ export class ChunkManager {
         private mapParser: MapParser,
         private scene: THREE.Scene,
         private physics: PhysicsWorld,
+        private enemyManager: EnemyManager,
     ) {
         this.generators = {
             [ZoneType.Plains]:    new PlainGenerator(),
@@ -74,10 +76,16 @@ export class ChunkManager {
 
         const chunk = new Chunk(coord)
         chunk.build(this.scene, this.physics, generator, this.mapParser)
+
+        if (zoneType === ZoneType.Encounter) {
+            chunk.spawnEnemies(this.enemyManager.spawnForChunk(coord))
+        }
+
         this.loaded.set(key, chunk)
     }
 
     private unloadChunk(key: string, chunk: Chunk): void {
+        this.enemyManager.despawnForChunk(chunk)
         chunk.dispose(this.scene, this.physics)
         this.loaded.delete(key)
     }

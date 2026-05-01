@@ -15,7 +15,9 @@
             "@player/*":    ["./src/player/*"],
             "@world/*":     ["./src/world/*"],
             "@ui/*":        ["./src/ui/*"],
-            "@audio/*":     ["./src/audio/*"]
+            "@audio/*":     ["./src/audio/*"],
+            "@weapons/*":   ["./src/weapons/*"],
+            "@enemies/*":   ["./src/enemies/*"]
         }
     },
     "include": ["src", "vite.config.ts"]

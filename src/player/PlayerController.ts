@@ -24,8 +24,9 @@ const FALL_DAMAGE_SCALE     = 5
 const TERRAIN_SUPPORT_EPSILON = 0.005
 
 export class PlayerController {
-    private yaw   = 0
-    private pitch = 0
+    private yaw         = 0
+    private pitch       = 0
+    private recoilPitch = 0
 
     private _isGrounded = false
     private _yVel       = 0  // vertical velocity: positive = up, negative = down
@@ -41,6 +42,10 @@ export class PlayerController {
         private onDeath:     () => void,
     ) {}
 
+    addRecoilPitch(delta: number): void {
+        this.recoilPitch += delta
+    }
+
     update(dt: number): void {
         // Kill floor — if somehow below the world, respawn immediately
         if (this.player.body.translation().y < VOID_Y) {
@@ -48,11 +53,13 @@ export class PlayerController {
             return
         }
 
+        this.recoilPitch *= Math.max(0, 1 - 14 * dt)
+
         this.processLook()
         this.processMovement(dt)
         this.player.syncToScene()
         this.playerState.updateSafePosition(this.player.position, this._isGrounded, dt)
-        this.cameraRig.syncToBody(this.player.position, this.yaw, this.pitch)
+        this.cameraRig.syncToBody(this.player.position, this.yaw, this.pitch + this.recoilPitch)
         this.input.flushJustPressed()
     }
 

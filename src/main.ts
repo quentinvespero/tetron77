@@ -12,6 +12,10 @@ import { ChunkManager } from '@world/ChunkManager'
 import { showSessionScreen } from '@ui/SessionScreen'
 import { HUD } from '@ui/HUD'
 import { AmbientMusic } from '@audio/AmbientMusic'
+import { AtmosphericParticles } from '@rendering/AtmosphericParticles'
+import { WeaponSystem } from '@weapons/WeaponSystem'
+import { RIFLE } from '@weapons/WeaponDefinitions'
+import { EnemyManager } from '@enemies/EnemyManager'
 
 async function main(): Promise<void> {
     // 1. Rapier WASM must initialise before anything else
@@ -24,6 +28,8 @@ async function main(): Promise<void> {
     const physics      = new PhysicsWorld()
     const sceneManager = new SceneManager()
     const cameraRig    = new CameraRig(sceneManager)
+    // Camera must be in the scene so children (weapon view model) are included in render traversal
+    sceneManager.scene.add(cameraRig.camera)
     sceneManager.initPostProcessing(cameraRig.camera)
 
     // 3. Wait for map and username entry concurrently
@@ -31,32 +37,48 @@ async function main(): Promise<void> {
 
     new AmbientMusic().start()
 
-    // 4. Chunk manager + player (map must be loaded first)
-    const chunkManager = new ChunkManager(mapParser, sceneManager.scene, physics)
-    const player       = new PlayerEntity(physics, mapParser)
+    // 4. Player entity (map must be loaded first)
+    const player = new PlayerEntity(physics, mapParser)
 
-    // 5. Force-load initial chunks so the player lands on terrain immediately
-    chunkManager.update(player.startPosition)
-
-    // 6. Input — init after session screen so its click listener doesn't conflict
+    // 5. Input — init after session screen so its click listener doesn't conflict
     const input = new InputManager().init()
 
-    // 7. Game state + HUD
+    // 6. Game state + HUD
     const playerState = new PlayerState(username, player.startPosition)
     const hud         = new HUD()
     hud.update(playerState.hp, playerState.maxHp)
 
-    // 8. Player controller wired to state + HUD
+    // 7. Player controller wired to state + HUD
     const controller = new PlayerController(input, player, cameraRig, playerState, () => hud.flashDeath())
 
-    // 9. Game loop — chunk streaming runs first so terrain colliders exist
-    //    before physics steps and before the KCC queries them for movement
+    // 8. Weapon system — registered before controller so it reads mouse state
+    //    before controller's flushJustPressed() clears it
+    const weaponSystem = new WeaponSystem(RIFLE, cameraRig, sceneManager.scene, input, hud, (delta) => controller.addRecoilPitch(delta))
+
+    // 9. Enemy manager — reads weaponSystem.lastHit; must exist before ChunkManager so it can
+    //    receive spawn calls when Encounter chunks first load
+    const enemyManager = new EnemyManager(sceneManager.scene, mapParser, weaponSystem, playerState, physics)
+
+    // 10. Chunk manager — requires enemyManager for Encounter zone enemy spawning
+    const chunkManager = new ChunkManager(mapParser, sceneManager.scene, physics, enemyManager)
+
+    // 11. Force-load initial chunks so the player lands on terrain immediately
+    chunkManager.update(player.startPosition)
+
+    // 12. Game loop — chunk streaming first so terrain colliders exist
+    //     before physics steps and before the KCC queries them for movement
     const loop = new GameLoop()
     loop.register({
         update: () => chunkManager.update(player.position),
     })
     loop.register(physics)
+    loop.register(weaponSystem)
+    // EnemyManager reads lastHit (set by weaponSystem) and ticks AI — must run after weapon, before controller
+    loop.register({
+        update: (dt) => enemyManager.update(dt, player.position),
+    })
     loop.register(controller)
+    loop.register(new AtmosphericParticles(sceneManager.scene, cameraRig.camera))
     loop.register({
         update: (dt) => {
             hud.update(playerState.hp, playerState.maxHp)

@@ -79,16 +79,18 @@ Built:
 - Physics integration (`PhysicsWorld.ts`): Rapier WASM, gravity -20
 - Player controller: first-person movement, username entry, health, fall damage, respawn
 - Ambient music (`AmbientMusic.ts`): looping `.opus` track, starts after login with a 5s volume fade-in
+- Weapon system (`src/weapons/`): long-range rifle, 8-round mag, unlimited ammo, R to reload, right-click scope (FOV 28°), raycast hit detection (damage=25), muzzle flash + hit sparks, first-person view model with idle sway
+- Enemy system (`src/enemies/`): humanoid robots (IG-88/Silicate style) in Encounter zones only; patrol→chase→attack AI; 60 HP, 3-shot rifle kill; melee attack deals 12 HP; Rapier LoS raycast; death-fall animation; chunk-scoped lifecycle (spawn on load, dispose on unload)
 
 Not yet built:
-- Weapons system
 - Compass HUD (showing nearby POIs)
-- Enemies / encounter logic
+- Animals wandering in non-encounter zones (non-aggressive)
+- Weapon pickups in the world (second weapon type needed first)
 
 ### UI
 Intentionally minimal — only health bar and compass (compass shows nearby unexplored POIs as player rotates).
 
 ## Design Constraints
-- Static site only — no server, no database, no auth
+- Static site only — no server, no database, no auth (ideally)
 - Session-only state — nothing persists between sessions
-- Keep loading screens minimal; chunk streaming should handle most of the world seamlessly
+- Keep loading screens minimal if possible; chunk streaming should handle most of the world seamlessly
