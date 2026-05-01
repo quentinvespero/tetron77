@@ -12,6 +12,7 @@ import { EncounterGenerator } from './generators/EncounterGenerator'
 import { POIGenerator } from './generators/POIGenerator'
 import type { BaseGenerator } from './generators/BaseGenerator'
 import type { EnemyManager } from '@enemies/EnemyManager'
+import { POIRegistry } from './POIRegistry'
 
 import { CHUNK_SIZE } from './constants'
 export { CHUNK_SIZE }
@@ -79,6 +80,22 @@ export class ChunkManager {
 
         if (zoneType === ZoneType.Encounter) {
             chunk.spawnEnemies(this.enemyManager.spawnForChunk(coord))
+        }
+
+        if (zoneType === ZoneType.POI) {
+            POIRegistry.register(
+                coord.cx * CHUNK_SIZE + CHUNK_SIZE / 2,
+                coord.cz * CHUNK_SIZE + CHUNK_SIZE / 2,
+                'poi',
+            )
+        }
+
+        if (zoneType === ZoneType.CityRuins) {
+            // Snap to a coarser grid so a whole city zone shows as a few markers, not one per chunk
+            const GRID = CHUNK_SIZE * 4
+            const sx = Math.round((coord.cx * CHUNK_SIZE + CHUNK_SIZE / 2) / GRID) * GRID
+            const sz = Math.round((coord.cz * CHUNK_SIZE + CHUNK_SIZE / 2) / GRID) * GRID
+            POIRegistry.register(sx, sz, 'city')
         }
 
         this.loaded.set(key, chunk)

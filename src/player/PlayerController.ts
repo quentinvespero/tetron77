@@ -148,4 +148,8 @@ export class PlayerController {
     get isGrounded(): boolean {
         return this._isGrounded
     }
+
+    get facingYaw(): number {
+        return this.yaw
+    }
 }

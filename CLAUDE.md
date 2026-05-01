@@ -81,9 +81,9 @@ Built:
 - Ambient music (`AmbientMusic.ts`): looping `.opus` track, starts after login with a 5s volume fade-in
 - Weapon system (`src/weapons/`): long-range rifle, 8-round mag, unlimited ammo, R to reload, right-click scope (FOV 28°), raycast hit detection (damage=25), muzzle flash + hit sparks, first-person view model with idle sway
 - Enemy system (`src/enemies/`): humanoid robots (IG-88/Silicate style) in Encounter zones only; patrol→chase→attack AI; 60 HP, 3-shot rifle kill; melee attack deals 12 HP; Rapier LoS raycast; death-fall animation; chunk-scoped lifecycle (spawn on load, dispose on unload)
+- Compass HUD (`src/ui/Compass.ts`): horizontal canvas bar at top-center; scrolls cardinal/intercardinal labels as player rotates; shows ◆ POI markers and city ruins with distance when within 1200m; POI positions registered via `POIRegistry` when POI chunks load
 
 Not yet built:
-- Compass HUD (showing nearby POIs)
 - Animals wandering in non-encounter zones (non-aggressive)
 - Weapon pickups in the world (second weapon type needed first)
 

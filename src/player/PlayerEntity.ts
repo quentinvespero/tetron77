@@ -10,8 +10,8 @@ export const CAPSULE_RADIUS      = 0.35
 
 // Spawn position — 1 pixel in map.png = 32 world units
 // e.g. to spawn at pixel (col, row): SPAWN_X = col*32, SPAWN_Z = row*32
-const SPAWN_X = 5 * 32  // pixel (5, 5) on map.png — plains zone
-const SPAWN_Z = 5 * 32
+const SPAWN_X = 32 * 32  // pixel (32, 32) on map.png — center of map, plains zone
+const SPAWN_Z = 32 * 32
 
 // Place the capsule bottom just above the collider surface — no more, no less
 const SPAWN_CLEARANCE = CAPSULE_HALF_HEIGHT + CAPSULE_RADIUS + 0.05

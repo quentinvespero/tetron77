@@ -286,6 +286,20 @@
         font-size: 9px;
       }
 
+      /* ── Compass ───────────────────────────────────────────────── */
+      #compass {
+        position: fixed;
+        top: 14px;
+        left: 50%;
+        transform: translateX(-50%);
+        pointer-events: none;
+        background: rgba(0, 0, 0, 0.45);
+        padding: 6px 14px;
+        /* Override the global canvas rule */
+        width: 480px;
+        height: 58px;
+      }
+
       /* ── Death flash ────────────────────────────────────────────── */
       #death-flash {
         position: fixed;
@@ -317,6 +331,7 @@
     <div id="click-to-play">Click to play</div>
 
     <div id="hud">
+      <canvas id="compass" width="480" height="58"></canvas>
       <div id="crosshair"></div>
       <div id="health-bar">
         <div id="health-label">HP</div>
