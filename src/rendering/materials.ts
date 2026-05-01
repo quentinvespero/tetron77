@@ -1,5 +1,40 @@
 import * as THREE from 'three'
 
+// Injects world-space hash noise into a MeshStandardMaterial's fragment output.
+// Creates a stable per-surface grain (not screen-space, so it doesn't crawl with the camera).
+export const applyGrainShader = (mat: THREE.MeshStandardMaterial, strength = 0.055, scale = 11.0): void => {
+    mat.onBeforeCompile = (shader) => {
+        shader.vertexShader = shader.vertexShader
+            .replace('void main() {', 'varying vec3 vGrainPos;\nvoid main() {')
+            .replace(
+                '#include <begin_vertex>',
+                `#include <begin_vertex>
+                vGrainPos = (modelMatrix * vec4(position, 1.0)).xyz;`
+            )
+
+        shader.fragmentShader = shader.fragmentShader
+            .replace(
+                'void main() {',
+                `varying vec3 vGrainPos;
+                float grainHash(vec3 p) {
+                    p = fract(p * vec3(443.897, 441.423, 437.195));
+                    p += dot(p, p.yzx + 19.19);
+                    return fract((p.x + p.y) * p.z);
+                }
+                void main() {`
+            )
+            .replace(
+                '#include <output_fragment>',
+                `#include <output_fragment>
+                // Two octaves: coarse grain + fine detail layer
+                float grain = grainHash(floor(vGrainPos * ${scale.toFixed(1)})) * 0.6
+                            + grainHash(floor(vGrainPos * ${(scale * 2.3).toFixed(1)})) * 0.4;
+                gl_FragColor.rgb += (grain - 0.5) * ${strength.toFixed(3)};`
+            )
+    }
+    mat.needsUpdate = true
+}
+
 // B&W palette — shared across all generators and entities
 export const PALETTE = {
     ground:     0x3a3a3a,
@@ -20,12 +55,14 @@ export const MAT_GROUND_VC = new THREE.MeshStandardMaterial({
     roughness: 1.0,
     metalness: 0.0,
 })
+applyGrainShader(MAT_GROUND_VC, 0.20, 6.0)
 
 export const MAT_ROCK = new THREE.MeshStandardMaterial({
     color: PALETTE.rock,
     roughness: 0.75,  // slight specular catch-lights on edges
     metalness: 0.0,
 })
+applyGrainShader(MAT_ROCK, 0.32, 10.0)
 
 // Slightly lighter than ground for ruined concrete/debris
 export const MAT_RUIN = new THREE.MeshStandardMaterial({
@@ -33,6 +70,7 @@ export const MAT_RUIN = new THREE.MeshStandardMaterial({
     roughness: 0.75,  // slight specular catch-lights on edges
     metalness: 0.0,
 })
+applyGrainShader(MAT_RUIN, 0.28, 8.0)
 
 // Dark navy water — slight transparency reduces Z-fight shimmer at terrain boundaries;
 // emissive prevents it going fully black in shadow
