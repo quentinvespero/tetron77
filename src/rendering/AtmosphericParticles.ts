@@ -13,7 +13,7 @@ const ASHES = {
 }
 
 const RAIN = {
-    count:   10000,
+    count:   15000,
     speed:   38.0,
     drift:   1.5,
     size:    5.5,
