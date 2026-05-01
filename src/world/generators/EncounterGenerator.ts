@@ -41,16 +41,27 @@ export class EncounterGenerator implements BaseGenerator {
             collider: RAPIER.ColliderDesc.heightfield(TERRAIN_SEGS, TERRAIN_SEGS, physicsHeights, { x: CHUNK_SIZE, y: 1, z: CHUNK_SIZE }),
         })
 
-        // Scattered rubble — 5 to 10 small organic chunks
+        // Scattered rubble — 5 to 10 pieces, mix of lumpy chunks and flat slab fragments
         const count = 5 + Math.floor(rng(cx, cz, 0) * 6)
         for (let i = 0; i < count; i++) {
             const seed = i * 10
-            const w    = 1 + rng(cx, cz, seed + 1) * 2     // 1–3 wide
-            const h    = 0.5 + rng(cx, cz, seed + 2) * 1.5 // 0.5–2 tall
-            const d    = 1 + rng(cx, cz, seed + 3) * 2     // 1–3 deep
+            const w    = 1 + rng(cx, cz, seed + 1) * 2
+            const d    = 1 + rng(cx, cz, seed + 3) * 2
             const lx   = rng(cx, cz, seed + 4) * (CHUNK_SIZE - 4) + 2
             const lz   = rng(cx, cz, seed + 5) * (CHUNK_SIZE - 4) + 2
             const ry   = rng(cx, cz, seed + 6) * Math.PI * 2
+
+            // Keep center arena clear for enemy combat
+            const dx = lx - CHUNK_SIZE / 2
+            const dz = lz - CHUNK_SIZE / 2
+            if (dx * dx + dz * dz < 64) continue   // skip within 8-unit radius of center
+
+            // Mix types: flat slab (man-made debris) vs lumpy chunk (organic stone)
+            const isSlab = rng(cx, cz, seed + 7) > 0.5
+            const h      = isSlab
+                ? 0.15 + rng(cx, cz, seed + 2) * 0.2   // flat panel: 0.15–0.35 tall
+                : 0.5  + rng(cx, cz, seed + 2) * 1.5   // lumpy chunk: 0.5–2 tall
+
             const groundY = Math.min(
                 sampleBlended(worldX + lx - w / 2, worldZ + lz - d / 2, mapParser),
                 sampleBlended(worldX + lx + w / 2, worldZ + lz - d / 2, mapParser),
@@ -58,11 +69,12 @@ export class EncounterGenerator implements BaseGenerator {
                 sampleBlended(worldX + lx + w / 2, worldZ + lz + d / 2, mapParser),
             )
 
-            // Low-detail icosahedron (detail 0) gives rough, irregular lump shape
+            // detail=1 gives 80 faces — enough geometry for natural-looking displacement
             const r      = Math.cbrt(w * h * d) / 2
-            const icoGeo = new THREE.IcosahedronGeometry(r, 0)
+            const icoGeo = new THREE.IcosahedronGeometry(r, 1)
             icoGeo.scale(w / (r * 2), h / (r * 2), d / (r * 2))
             const geo    = mergeVertices(icoGeo)  // deduplicate verts → no torn edges on displacement
+            icoGeo.dispose()
 
             const rockPos = geo.attributes.position as THREE.BufferAttribute
             for (let j = 0; j < rockPos.count; j++) {
@@ -73,6 +85,7 @@ export class EncounterGenerator implements BaseGenerator {
             }
             rockPos.needsUpdate = true
             const flatGeo = geo.toNonIndexed()
+            geo.dispose()
             flatGeo.computeVertexNormals()
 
             const mesh = new THREE.Mesh(flatGeo, MAT_ROCK)

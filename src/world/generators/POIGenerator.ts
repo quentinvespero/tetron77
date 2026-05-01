@@ -54,12 +54,34 @@ export class POIGenerator implements BaseGenerator {
             const sh     = 4 + rng(cx, cz, seed + 1) * 4       // 4–8 tall
             const ox     = (rng(cx, cz, seed + 2) - 0.5) * 1.5
             const oz     = (rng(cx, cz, seed + 3) - 0.5) * 1.5
-            // Slight rotation offset per segment — crumbled, irregular look
             const ry     = rng(cx, cz, seed + 4) * Math.PI * 2
 
-            // 6-sided cylinder: angular monolith, clearly not a box
-            const geo  = new THREE.CylinderGeometry(sw * 0.45, sw * 0.5, sh, 6)
-            const mesh = new THREE.Mesh(geo, MAT_RUIN)
+            let finalGeo: THREE.BufferGeometry
+
+            if (s === segCount - 1) {
+                // Topmost segment — add broken crown displacement
+                const topGeo = new THREE.CylinderGeometry(sw * 0.45, sw * 0.5, sh, 12, 2)
+                const merged = mergeVertices(topGeo)
+                topGeo.dispose()
+                const topPos = merged.attributes.position as THREE.BufferAttribute
+                for (let j = 0; j < topPos.count; j++) {
+                    if (topPos.getY(j) > sh / 2 - 0.05) {
+                        const vs = s * 1000 + j * 3 + 50000
+                        topPos.setY(j, topPos.getY(j) + (rng(cx, cz, vs)     - 0.5) * sh * 0.15)
+                        topPos.setX(j, topPos.getX(j) + (rng(cx, cz, vs + 1) - 0.5) * 0.3)
+                        topPos.setZ(j, topPos.getZ(j) + (rng(cx, cz, vs + 2) - 0.5) * 0.3)
+                    }
+                }
+                topPos.needsUpdate = true
+                finalGeo = merged.toNonIndexed()
+                merged.dispose()
+                finalGeo.computeVertexNormals()
+            } else {
+                // 12-sided cylinder: round enough to read as a cylinder, not a hexagon
+                finalGeo = new THREE.CylinderGeometry(sw * 0.45, sw * 0.5, sh, 12)
+            }
+
+            const mesh = new THREE.Mesh(finalGeo, MAT_RUIN)
             mesh.position.set(centerX + ox, floorY + sh / 2, centerZ + oz)
             mesh.rotation.y = ry
             mesh.castShadow    = true
@@ -76,7 +98,57 @@ export class POIGenerator implements BaseGenerator {
             floorY += sh
         }
 
-        // 2–3 surrounding debris pieces — organic icosahedron chunks
+        // Spire remnant atop the tower — visual only, no physics; 30% chance
+        if (rng(cx, cz, 95) < 0.3) {
+            const spireH   = 2 + rng(cx, cz, 96) * 5
+            const spireGeo = new THREE.CylinderGeometry(0.08, 0.14, spireH, 8)
+            const spireMesh = new THREE.Mesh(spireGeo, MAT_ROCK)
+            const tiltX = (rng(cx, cz, 97) - 0.5) * 0.35
+            const tiltZ = (rng(cx, cz, 98) - 0.5) * 0.35
+            spireMesh.position.set(centerX + 0.3, floorY + spireH / 2, centerZ + 0.3)
+            spireMesh.rotation.set(tiltX, 0, tiltZ)
+            spireMesh.castShadow = true
+            meshes.push(spireMesh)
+        }
+
+        // Tower base rubble scatter — visual only, no physics
+        const towerRubbleCount = 4 + Math.floor(rng(cx, cz, 90) * 5)
+        for (let r = 0; r < towerRubbleCount; r++) {
+            const rs     = r * 10 + 500
+            const radius = 0.3 + rng(cx, cz, rs)     * 0.8
+            const ang    = rng(cx, cz, rs + 1) * Math.PI * 2
+            const dist   = baseSize / 2 + 0.5 + rng(cx, cz, rs + 2) * 4
+            const rpx    = centerX + Math.cos(ang) * dist
+            const rpz    = centerZ + Math.sin(ang) * dist
+            const rGY    = sampleBlended(rpx, rpz, mapParser)
+            const xScale = 1.0 + rng(cx, cz, rs + 3) * 0.8
+            const yScale = 0.25 + rng(cx, cz, rs + 4) * 0.2
+            const zScale = 1.0 + rng(cx, cz, rs + 5) * 0.8
+
+            const rIcoGeo = new THREE.IcosahedronGeometry(radius, 1)
+            rIcoGeo.scale(xScale, yScale, zScale)
+            const rGeo = mergeVertices(rIcoGeo)
+            rIcoGeo.dispose()
+            const rPos = rGeo.attributes.position as THREE.BufferAttribute
+            for (let j = 0; j < rPos.count; j++) {
+                const vs = r * 500 + j * 3 + 60000
+                rPos.setX(j, rPos.getX(j) * (1 + (rng(cx, cz, vs)     - 0.5) * 0.6))
+                rPos.setY(j, rPos.getY(j) * (1 + (rng(cx, cz, vs + 1) - 0.5) * 0.6))
+                rPos.setZ(j, rPos.getZ(j) * (1 + (rng(cx, cz, vs + 2) - 0.5) * 0.6))
+            }
+            rPos.needsUpdate = true
+            const rFlatGeo = rGeo.toNonIndexed()
+            rGeo.dispose()
+            rFlatGeo.computeVertexNormals()
+
+            const rMesh = new THREE.Mesh(rFlatGeo, MAT_RUIN)
+            rMesh.position.set(rpx, rGY + radius * yScale, rpz)
+            rMesh.castShadow    = true
+            rMesh.receiveShadow = true
+            meshes.push(rMesh)
+        }
+
+        // 2–3 surrounding larger debris pieces
         const debrisCount = 2 + Math.floor(rng(cx, cz, 50) * 2)
         for (let i = 0; i < debrisCount; i++) {
             const seed    = i * 10 + 200
@@ -96,9 +168,10 @@ export class POIGenerator implements BaseGenerator {
             )
 
             const r      = Math.cbrt(w * h * d) / 2
-            const icoGeo = new THREE.IcosahedronGeometry(r, 0)
+            const icoGeo = new THREE.IcosahedronGeometry(r, 1)
             icoGeo.scale(w / (r * 2), h / (r * 2), d / (r * 2))
-            const geo    = mergeVertices(icoGeo)  // deduplicate verts → no torn edges on displacement
+            const geo    = mergeVertices(icoGeo)
+            icoGeo.dispose()
 
             const rockPos = geo.attributes.position as THREE.BufferAttribute
             for (let j = 0; j < rockPos.count; j++) {
@@ -109,6 +182,7 @@ export class POIGenerator implements BaseGenerator {
             }
             rockPos.needsUpdate = true
             const flatGeo = geo.toNonIndexed()
+            geo.dispose()
             flatGeo.computeVertexNormals()
 
             const mesh = new THREE.Mesh(flatGeo, MAT_ROCK)
