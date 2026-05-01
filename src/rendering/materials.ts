@@ -34,11 +34,17 @@ export const MAT_RUIN = new THREE.MeshStandardMaterial({
     metalness: 0.0,
 })
 
-// Still black water — low roughness gives faint reflective sheen
+// Dark navy water — slight transparency reduces Z-fight shimmer at terrain boundaries;
+// emissive prevents it going fully black in shadow
 export const MAT_WATER = new THREE.MeshStandardMaterial({
-    color: PALETTE.water,
-    roughness: 0.2,
-    metalness: 0.1,
+    color:             0x0a1828,
+    roughness:         0.15,
+    metalness:         0.0,
+    transparent:       true,
+    opacity:           0.88,
+    emissive:          new THREE.Color(0x040c14),
+    emissiveIntensity: 0.4,
+    side:              THREE.FrontSide,
 })
 
 // Colors used for height-based terrain gradient
